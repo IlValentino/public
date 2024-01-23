@@ -1,10 +1,11 @@
 # variables assuming fathom blade equipped
-spell_power = 11
-extra_attack_power = 18
-strength = 126  # assuming divine strength
+spell_power = 11 + 25
+extra_attack_power = 18 + 20 + 55 + 60
+strength = 126  # with divine strength
 base_attack_power = 55
 attack_power = base_attack_power + extra_attack_power + 2 * strength
-crit_chance = 6.06 / 100
+melee_crit_chance = 6.06 / 100 + 2 / 100
+spell_crit_chance = 0 / 100
 weapon_min = 71 + 3
 weapon_max = 107 + 3
 weapon_speed = 3.6
@@ -12,32 +13,32 @@ enemy_speed = 1.5
 parry_chance = 5.32/100
 extra_hit_per_parry = 0.24
 parry_per_sec = parry_chance/enemy_speed
-armor_mitigation = 0.88
+armor_coefficient = 0.95  # 1 means 0% mitigation from armor
 # hit not yet implemented
 base_spell_hit_chance = 0.94
 base_melee_hit_chance = 0.93
 extra_hit = 2/100
 
 # holy prot with martyr
-exorcism = (90+102)/2 + 0.429 * spell_power
+exorcism = (1 + 0.5 * spell_crit_chance) * (90+102)/2 + 0.429 * spell_power
 consecration = 8 * 8 + 0.336 * spell_power
 base_melee = (weapon_min+weapon_max)/2 + attack_power * weapon_speed/14
-melee = (1 + crit_chance) * base_melee * armor_mitigation
-seal = 0.3 * base_melee
-judge = 0.7 * base_melee
+melee = (1 + melee_crit_chance) * base_melee * armor_coefficient
+seal = (1 + melee_crit_chance) * 0.3 * base_melee
+judge = (1 + melee_crit_chance) * 0.7 * base_melee
 fathom_blast = 49.54
 fathom_ppm = 1.417
 
 holy_dps = exorcism/15 + consecration/8 + seal/weapon_speed + seal * fathom_ppm/60 + judge/10
-non_holy_dps = (melee/weapon_speed + fathom_blast * fathom_ppm/60 +
-                melee * extra_hit_per_parry * parry_per_sec * armor_mitigation)
+non_holy_dps = (melee / weapon_speed + fathom_blast * fathom_ppm / 60 +
+                melee * extra_hit_per_parry * parry_per_sec * armor_coefficient)
 
 threat_per_sec = 2.2 * holy_dps + 1.5 * non_holy_dps
 
 print(f"Holy TPS: {threat_per_sec}")
 
 # ret with reckoning rune
-crit_chance = crit_chance + 5 / 100
+melee_crit_chance = melee_crit_chance + 5 / 100
 strength = strength/1.1  # now without divine strength
 attack_power = base_attack_power + extra_attack_power + 2 * strength
 parry_chance = parry_chance + 5/100
@@ -45,14 +46,15 @@ extra_hit_per_parry = 0.24
 parry_per_sec = parry_chance/enemy_speed
 
 base_melee = (weapon_min+weapon_max)/2 + attack_power * weapon_speed/14
-melee = (1 + crit_chance) * base_melee * armor_mitigation
-judge = (68+73)/2 + 0.29 * spell_power
-seal = 0.7 * base_melee
-divine_storm = 1.1 * base_melee * armor_mitigation
+melee = (1 + melee_crit_chance) * base_melee * armor_coefficient
+judge = (1 + melee_crit_chance) * (68+73)/2 + 0.29 * spell_power
+seal = (1 + melee_crit_chance) * 0.7 * base_melee
+divine_storm = (1 + melee_crit_chance) * 1.1 * base_melee * armor_coefficient
 
 holy_dps = exorcism/15 + judge/10 + seal * 7/60
-non_holy_dps = (melee/weapon_speed + divine_storm/10 + fathom_blast * fathom_ppm/60 +
-                melee * extra_hit_per_parry * parry_per_sec * armor_mitigation)
+# divine storm does 10% more threat than it should
+non_holy_dps = (melee / weapon_speed + 1.1 * divine_storm / 10 + fathom_blast * fathom_ppm / 60 +
+                melee * extra_hit_per_parry * parry_per_sec * armor_coefficient)
 
 ds_heal = divine_storm * 0.25
 heal_per_sec = ds_heal/10
@@ -60,3 +62,4 @@ heal_per_sec = ds_heal/10
 threat_per_sec = 2.2 * holy_dps + 1.5 * non_holy_dps + 0.5 * heal_per_sec * 0.5 * 2.2
 
 print(f"Ret TPS: {threat_per_sec}")
+
