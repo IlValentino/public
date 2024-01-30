@@ -87,7 +87,7 @@ melee = (base_melee * melee_crit_coefficient * armor_coefficient * prot_melee_mi
 
 som_seal = (0.3 * base_melee * melee_crit_coefficient * prot_melee_miss_coefficient * dodge_coefficient
             * parry_coefficient)
-som_judge = 0.7 * base_melee * spell_crit_coefficient * spell_miss_coefficient
+som_judge = 0.7 * base_melee * melee_crit_coefficient * spell_miss_coefficient
 
 holy_dps = (exorcism/15 + consecration/8 + som_judge/10 + som_seal/two_weapon_speed + ret_aura/enemy_speed
             + som_seal * parry_hit_per_sec)
@@ -118,7 +118,7 @@ divine_storm_heal = 0.25 * divine_storm
 
 soc_seal = ((0.7 * base_melee + 0.2 * spell_power) * ret_melee_crit_coefficient * parry_coefficient * dodge_coefficient
             * melee_miss_coefficient)
-soc_judge = ((124+135)/2 + 0.43 * spell_power) * spell_crit_coefficient * spell_miss_coefficient
+soc_judge = ((124+135)/2 + 0.43 * spell_power) * ret_melee_crit_coefficient * spell_miss_coefficient
 soc_ppm = 7
 soc_pps = soc_ppm/60
 
