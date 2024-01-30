@@ -54,11 +54,11 @@ base_melee = one_weapon + attack_power * one_weapon_speed/14
 melee = (base_melee * melee_crit_coefficient * armor_coefficient * prot_melee_miss_coefficient * dodge_coefficient
          * parry_coefficient)
 
-sor_seal_five = 12 * 1.15 + 0.1 * spell_power * spell_miss_coefficient
-sor_judge_five = (96+105)/2 * 1.15 + 0.5 * spell_power * spell_miss_coefficient
+sor_seal_five = 12 * 1.15 + 0.1 * spell_power * prot_melee_miss_coefficient
+sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient
 
-sor_seal_three = 5 * 1.15 + 0.18 * spell_power * spell_miss_coefficient
-sor_judge_three = (53+58)/2 * 1.15 + 0.5 * spell_power * spell_miss_coefficient
+sor_seal_three = (5 * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
+sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient
 
 holy_dps = (exorcism/15 + sor_judge_three/10 + sor_seal_three/one_weapon_speed + consecration/8 + ret_aura/enemy_speed
             + sor_seal_three * parry_hit_per_sec)
