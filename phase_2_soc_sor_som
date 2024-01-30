@@ -23,11 +23,16 @@ two_weapon_max = 159
 two_weapon = (105+159)/2
 two_weapon_speed = 3.4
 
-# enemy, parry, miss (lvl 42 boss)
+# enemy, parry, miss, glancing (lvl 42 boss)
 melee_miss_chance = 6 / 100
 melee_miss_coefficient = 1 - melee_miss_chance
 spell_miss_chance = 6 / 100
 spell_miss_coefficient = 1 - spell_miss_chance
+
+glance_chance = 0.3
+glance_reduction = 0.15
+reduction_coefficient = 1 - glance_reduction
+glance_coefficient = glance_chance * reduction_coefficient + (1 - glance_chance)
 
 enemy_speed = 1.5
 parry_chance = 5 / 100
@@ -52,7 +57,7 @@ ret_aura = 12
 
 base_melee = one_weapon + attack_power * one_weapon_speed/14
 melee = (base_melee * melee_crit_coefficient * armor_coefficient * prot_melee_miss_coefficient * dodge_coefficient
-         * parry_coefficient)
+         * parry_coefficient * glance_coefficient)
 
 sor_seal_five = 12 * 1.15 + 0.1 * spell_power * prot_melee_miss_coefficient
 sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient
@@ -60,8 +65,8 @@ sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficien
 sor_seal_three = (5 * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
 sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient
 
-holy_dps = (exorcism/15 + sor_judge_three/10 + sor_seal_three/one_weapon_speed + consecration/8 + ret_aura/enemy_speed
-            + sor_seal_three * parry_hit_per_sec)
+holy_dps = (exorcism/15 + sor_judge_five/10 + sor_seal_five/one_weapon_speed + consecration/8 + ret_aura/enemy_speed
+            + sor_seal_five * parry_hit_per_sec)
 non_holy_dps = melee/one_weapon_speed + melee * parry_hit_per_sec
 
 threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5
@@ -78,7 +83,7 @@ ret_aura = 12
 
 base_melee = two_weapon + attack_power * two_weapon_speed/14
 melee = (base_melee * melee_crit_coefficient * armor_coefficient * prot_melee_miss_coefficient * dodge_coefficient
-         * parry_coefficient)
+         * parry_coefficient * glance_coefficient)
 
 som_seal = 0.3 * base_melee * melee_crit_coefficient * prot_melee_miss_coefficient
 som_judge = 0.7 * base_melee * melee_crit_coefficient * prot_melee_miss_coefficient
@@ -105,7 +110,7 @@ ret_aura = 12
 
 base_melee = two_weapon + attack_power * two_weapon_speed/14
 melee = (base_melee * ret_melee_crit_coefficient * armor_coefficient * melee_miss_coefficient * dodge_coefficient
-         * parry_coefficient)
+         * parry_coefficient * glance_coefficient)
 
 divine_storm = 1.1 * melee
 divine_storm_heal = 0.25 * divine_storm
