@@ -2,7 +2,7 @@ import math
 
 # variables
 extra_attack_power = 85
-strength_without_weapon_talent = 250
+strength_without_weapon_talent = 200
 level = 40
 base_attack_power = 3 * level - 20
 
@@ -13,7 +13,11 @@ spell_crit_coefficient = 1 + 0.5 * spell_crit_chance
 
 
 def art_of_war_cd(crit, speed):
-    return 15/math.exp(speed*crit)
+    return 15
+
+
+def sor_three(speed):
+    return 5 * speed - 2
 
 
 # hammer of righteous judgement
@@ -86,19 +90,12 @@ divine_storm = (1.1 * base_melee * armor_coefficient * dodge_coefficient * parry
                 * prot_melee_miss_coefficient)
 divine_storm_heal = 0.25 * divine_storm
 
-sor_seal_five = 12 * 1.15 + 0.1 * spell_power * prot_melee_miss_coefficient
-sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
-
-sor_seal_three = (5 * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
+sor_seal_three = (sor_three(one_weapon_speed) * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
 sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
-holy_dps_five = (exorcism/15 + sor_judge_five/8 + sor_seal_five/one_weapon_speed + consecration/8
-                 + ret_aura/enemy_speed + sor_seal_five * parry_hit_per_sec)
+holy_dps = (exorcism/15 + sor_judge_three/8 + sor_seal_three/one_weapon_speed + consecration/8
+            + ret_aura/enemy_speed + sor_seal_three * parry_hit_per_sec)
 
-holy_dps_three = (exorcism/15 + sor_judge_three/8 + sor_seal_three/one_weapon_speed + consecration/8
-                  + ret_aura/enemy_speed + sor_seal_three * parry_hit_per_sec)
-
-holy_dps = max(holy_dps_three, holy_dps_five)
 
 non_holy_dps = melee/one_weapon_speed + melee * parry_hit_per_sec + 1.11 * divine_storm/10
 heal = divine_storm_heal
@@ -127,19 +124,11 @@ divine_storm = (1.1 * base_melee * armor_coefficient * dodge_coefficient * parry
                 * prot_melee_miss_coefficient)
 divine_storm_heal = 0.25 * divine_storm
 
-sor_seal_five = 12 * 1.15 + 0.1 * spell_power * prot_melee_miss_coefficient
-sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
-
-sor_seal_three = (5 * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
+sor_seal_three = (sor_three(one_alt_weapon_speed) * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
 sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
-holy_dps_five = (exorcism/15 + sor_judge_five/8 + sor_seal_five/one_alt_weapon_speed + consecration/8
-                 + ret_aura/enemy_speed + sor_seal_five * parry_hit_per_sec)
-
-holy_dps_three = (exorcism/15 + sor_judge_three/8 + sor_seal_three/one_alt_weapon_speed + consecration/8
-                  + ret_aura/enemy_speed + sor_seal_three * parry_hit_per_sec)
-
-holy_dps = max(holy_dps_three, holy_dps_five)
+holy_dps = (exorcism/15 + sor_judge_three/8 + sor_seal_three/one_alt_weapon_speed + consecration/8
+            + ret_aura/enemy_speed + sor_seal_three * parry_hit_per_sec)
 
 non_holy_dps = (melee/one_alt_weapon_speed + melee * parry_hit_per_sec + 1.11 * divine_storm/10 +
                 weapon_proc_damage * weapon_ppm/60)
@@ -237,7 +226,8 @@ soc_judge = ((124+135)/2 + 0.43 * spell_power) * ret_melee_crit_coefficient * sp
 soc_ppm = 7
 soc_pps = soc_ppm/60
 
-holy_dps = exorcism/art_of_war_cd(ret_melee_crit_chance, two_weapon_speed) + ret_aura/enemy_speed + soc_seal * soc_pps + soc_judge/8
+holy_dps = (exorcism/art_of_war_cd(ret_melee_crit_chance, two_weapon_speed) + ret_aura/enemy_speed + soc_seal * soc_pps 
+            + soc_judge/8)
 non_holy_dps = melee/two_weapon_speed + 1.11 * divine_storm/10 + melee * ret_parry_hit_per_sec
 heal_per_sec = divine_storm_heal/10
 
