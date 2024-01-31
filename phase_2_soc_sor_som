@@ -1,3 +1,5 @@
+import math
+
 # variables
 extra_attack_power = 85
 strength_without_weapon_talent = 200
@@ -10,8 +12,18 @@ spell_crit_chance = 5 / 100
 spell_crit_coefficient = 1 + 0.5 * spell_crit_chance
 
 
+def c1(crit):
+    a = 12
+    b = 0.3
+    return 1/(1 + math.exp(-a*(crit-b)))
+
+
+def c2(crit):
+    return -93.3432*crit**4+148.284*crit**3-44.7564*crit**2-26.2733*crit+11.9525
+
+
 def art_of_war_cd(crit, speed):
-    return 15
+    return c1(crit) * speed/crit + c2(crit)
 
 
 def sor_three(speed):
