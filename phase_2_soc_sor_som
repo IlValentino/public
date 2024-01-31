@@ -1,3 +1,5 @@
+import math
+
 # variables
 extra_attack_power = 85
 strength_without_weapon_talent = 250
@@ -8,6 +10,11 @@ melee_crit_chance = 6 / 100
 melee_crit_coefficient = 1 + melee_crit_chance
 spell_crit_chance = 5 / 100
 spell_crit_coefficient = 1 + 0.5 * spell_crit_chance
+
+
+def art_of_war_cd(crit, speed):
+    return 15/math.exp(speed*crit)
+
 
 # hammer of righteous judgement
 one_weapon_min = 17
@@ -208,7 +215,7 @@ holy_soc_threat_per_sec = holy_dps * 2.22 + non_holy_dps * 1.5 + heal_per_sec * 
 print("TPS Holy Ret with SoC and 2h:")
 print(holy_soc_threat_per_sec)
 
-# prot ret with 2h and soc
+# prot ret with 2h and soc and art of war
 strength = (strength_without_weapon_talent+two_extra_strength)  # with divine strength
 attack_power = base_attack_power + extra_attack_power + 2 * strength
 spell_power = 0.3 * attack_power + two_extra_spell_power
@@ -230,7 +237,7 @@ soc_judge = ((124+135)/2 + 0.43 * spell_power) * ret_melee_crit_coefficient * sp
 soc_ppm = 7
 soc_pps = soc_ppm/60
 
-holy_dps = exorcism/15 + ret_aura/enemy_speed + soc_seal * soc_pps + soc_judge/8
+holy_dps = exorcism/art_of_war_cd(ret_melee_crit_chance, two_weapon_speed) + ret_aura/enemy_speed + soc_seal * soc_pps + soc_judge/8
 non_holy_dps = melee/two_weapon_speed + 1.11 * divine_storm/10 + melee * ret_parry_hit_per_sec
 heal_per_sec = divine_storm_heal/10
 
