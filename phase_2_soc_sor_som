@@ -1,6 +1,6 @@
 # variables
 extra_attack_power = 85
-strength_without_weapon_talent = 190
+strength_without_weapon_talent = 250
 level = 40
 base_attack_power = 3 * level - 20
 
@@ -16,6 +16,15 @@ one_weapon = (one_weapon_min+one_weapon_max)/2
 one_weapon_speed = 1.3
 
 one_extra_strength = 3
+
+# raid epic
+one_alt_weapon_min = 41
+one_alt_weapon_max = 75
+one_alt_weapon = (one_alt_weapon_min+one_alt_weapon_max)/2
+one_alt_weapon_speed = 1.7
+
+weapon_ppm = 1.76
+weapon_proc_damage = (25+35)/2
 
 # pvp epic
 two_weapon_min = 116
@@ -50,7 +59,7 @@ dodge_coefficient = 1 - enemy_dodge_chance
 armor_mitigation = 6 / 100
 armor_coefficient = 1 - armor_mitigation
 
-# holy prot with sor and 1h
+# holy prot with sor and 1h hammer
 strength = (strength_without_weapon_talent+one_extra_strength) * 1.1  # with divine strength
 attack_power = base_attack_power + extra_attack_power + 2 * strength
 spell_power = 0.3 * attack_power
@@ -76,14 +85,62 @@ sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficien
 sor_seal_three = (5 * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
 sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
-holy_dps = (exorcism/15 + sor_judge_five/8 + sor_seal_five/one_weapon_speed + consecration/8 + ret_aura/enemy_speed
-            + sor_seal_five * parry_hit_per_sec)
+holy_dps_five = (exorcism/15 + sor_judge_five/8 + sor_seal_five/one_weapon_speed + consecration/8
+                 + ret_aura/enemy_speed + sor_seal_five * parry_hit_per_sec)
+
+holy_dps_three = (exorcism/15 + sor_judge_three/8 + sor_seal_three/one_weapon_speed + consecration/8
+                  + ret_aura/enemy_speed + sor_seal_three * parry_hit_per_sec)
+
+holy_dps = max(holy_dps_three, holy_dps_five)
+
 non_holy_dps = melee/one_weapon_speed + melee * parry_hit_per_sec + 1.11 * divine_storm/10
 heal = divine_storm_heal
 
 sor_threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5 + 0.5 * 0.5 * heal * 2.886
-print("TPS Holy Prot with SoR and 1h:")
+print("TPS Holy Prot with SoR and 1h hammer:")
 print(sor_threat_per_sec)
+
+# holy prot with sor and 1h sword
+strength = strength_without_weapon_talent * 1.1  # with divine strength
+attack_power = base_attack_power + extra_attack_power + 2 * strength
+spell_power = 0.3 * attack_power
+
+prot_melee_miss_chance = melee_miss_chance - 3 / 100
+prot_melee_miss_coefficient = 1 - prot_melee_miss_chance
+
+consecration = (24 * 8 + 0.336 * spell_power) * spell_miss_coefficient
+exorcism = ((227+255)/2 + 0.429 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
+ret_aura = 12
+
+base_melee = one_alt_weapon + attack_power * one_alt_weapon_speed/14
+melee = (base_melee * melee_crit_coefficient * armor_coefficient * prot_melee_miss_coefficient * dodge_coefficient
+         * parry_coefficient * glance_coefficient)
+
+divine_storm = (1.1 * base_melee * armor_coefficient * dodge_coefficient * parry_coefficient
+                * prot_melee_miss_coefficient)
+divine_storm_heal = 0.25 * divine_storm
+
+sor_seal_five = 12 * 1.15 + 0.1 * spell_power * prot_melee_miss_coefficient
+sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
+
+sor_seal_three = (5 * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
+sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
+
+holy_dps_five = (exorcism/15 + sor_judge_five/8 + sor_seal_five/one_alt_weapon_speed + consecration/8
+                 + ret_aura/enemy_speed + sor_seal_five * parry_hit_per_sec)
+
+holy_dps_three = (exorcism/15 + sor_judge_three/8 + sor_seal_three/one_alt_weapon_speed + consecration/8
+                  + ret_aura/enemy_speed + sor_seal_three * parry_hit_per_sec)
+
+holy_dps = max(holy_dps_three, holy_dps_five)
+
+non_holy_dps = (melee/one_alt_weapon_speed + melee * parry_hit_per_sec + 1.11 * divine_storm/10 +
+                weapon_proc_damage * weapon_ppm/60)
+heal = divine_storm_heal
+
+sor_alt_threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5 + 0.5 * 0.5 * heal * 2.886
+print("TPS Holy Prot with SoR and 1h sword:")
+print(sor_alt_threat_per_sec)
 
 # holy prot with martyr and 2h
 strength = (strength_without_weapon_talent+two_extra_strength) * 1.1  # with divine strength
@@ -182,5 +239,5 @@ print("TPS Prot Ret with SoC and 2h:")
 print(prot_soc_threat_per_sec)
 
 print("Relative performance:")
-print(sor_threat_per_sec / max(som_threat_per_sec, holy_soc_threat_per_sec, prot_soc_threat_per_sec))
-
+print(max(sor_threat_per_sec, sor_alt_threat_per_sec) / max(som_threat_per_sec, holy_soc_threat_per_sec,
+                                                            prot_soc_threat_per_sec))
