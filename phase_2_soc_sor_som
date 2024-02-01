@@ -88,7 +88,7 @@ armor_coefficient = 1 - armor_mitigation
 strength = (strength_without_weapon_talent+one_extra_strength) * 1.1  # with divine strength
 attack_power = base_attack_power + extra_attack_power + 2 * strength
 spell_power = 0.3 * attack_power
-
+print(spell_power)
 prot_melee_miss_chance = melee_miss_chance - 3 / 100
 prot_melee_miss_coefficient = 1 - prot_melee_miss_chance
 
@@ -108,7 +108,7 @@ sor_seal_three = (sor_three(one_weapon_speed) * 1.15 + 0.18 * spell_power) * pro
 sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
 sor_seal_five = (sor_five(one_weapon_speed) * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
-sor_judge_five = ((96+195)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
+sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
 holy_dps_three = (exorcism/15 + sor_judge_three/8 + sor_seal_three/one_weapon_speed + consecration/8
                   + ret_aura/enemy_speed + sor_seal_three * parry_hit_per_sec)
@@ -155,7 +155,7 @@ sor_seal_three = (sor_three(one_alt_weapon_speed) * 1.15 + 0.18 * spell_power) *
 sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
 sor_seal_five = (sor_five(one_alt_weapon_speed) * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
-sor_judge_five = ((96+195)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
+sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
 holy_dps_three = (exorcism/15 + sor_judge_three/8 + sor_seal_three/one_alt_weapon_speed + consecration/8
                   + ret_aura/enemy_speed + sor_seal_three * parry_hit_per_sec)
@@ -195,7 +195,7 @@ base_melee = two_weapon + attack_power * two_weapon_speed/14
 melee = (base_melee * melee_crit_coefficient * armor_coefficient * prot_melee_miss_coefficient * dodge_coefficient
          * parry_coefficient * glance_coefficient)
 
-som_seal = (0.3 * base_melee * melee_crit_coefficient * prot_melee_miss_coefficient * dodge_coefficient
+som_seal = (0.4 * base_melee * melee_crit_coefficient * prot_melee_miss_coefficient * dodge_coefficient
             * parry_coefficient)
 som_judge = 0.7 * base_melee * melee_crit_coefficient * spell_miss_coefficient
 
