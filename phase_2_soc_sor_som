@@ -1,4 +1,4 @@
-import math
+import random
 
 # variables
 extra_attack_power = 85 + 85
@@ -12,26 +12,78 @@ spell_crit_chance = 5 / 100
 spell_crit_coefficient = 1 + 0.5 * spell_crit_chance
 
 
-def c1(crit):
-    a = 12
-    b = 0.3
-    return 1/(1 + math.exp(-a*(crit-b)))
-
-
-def c2(crit):
-    return -93.3432*crit**4+148.284*crit**3-44.7564*crit**2-26.2733*crit+11.9525
-
-
-def art_of_war_cd(crit, speed):
-    return c1(crit) * speed/crit + c2(crit)
-
-
+# model functions
 def sor_three(speed):
     return 5.2 * speed - 2
 
 
 def sor_five(speed):
     return 11.25 * speed - 4
+
+
+def chance(p):
+    random_number = random.random()
+    if p > random_number:
+        return True
+    else:
+        return False
+
+
+def art_of_war_cd(crit, speed):
+    cd = 15
+    gcd = 1.5
+    on_cd = False
+    on_gcd = False
+    t = 0
+    cd_timer = 0
+    gcd_timer = 0
+
+    swing_cd = speed
+    swing_timer = 0
+    can_swing = True
+
+    crit_chance = crit
+
+    exorcism_counter = 0
+    target_cycles = 10 ** 3
+
+    while True:
+        if not on_cd and not on_gcd:
+            on_cd = True
+            cd_timer = cd
+            on_gcd = True
+            gcd_timer = gcd
+            exorcism_counter += 1
+
+        if can_swing:
+            swing_timer = swing_cd
+            can_swing = False
+            if chance(crit_chance) and on_cd:
+                on_cd = False
+                cd_timer = 0
+
+        if on_cd:
+            cd_timer = round(cd_timer - 0.1, ndigits=1)
+            if cd_timer == 0:
+                on_cd = False
+
+        if on_gcd:
+            gcd_timer = round(gcd_timer - 0.1, ndigits=1)
+            if gcd_timer == 0:
+                on_gcd = False
+
+        if not can_swing:
+            swing_timer = round(swing_timer - 0.1, ndigits=1)
+            if swing_timer == 0:
+                can_swing = True
+
+        t = round(t + 0.1, ndigits=1)
+
+        if t == 15 * target_cycles:
+            break
+
+    new_cd = t / exorcism_counter
+    return new_cd
 
 
 # hammer of righteous judgement
