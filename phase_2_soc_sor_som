@@ -18,7 +18,7 @@ def sor_three(speed):
 
 
 def sor_five(speed):
-    return 11.25 * speed - 4
+    return 8.3 * speed - 0.3
 
 
 def chance(p):
