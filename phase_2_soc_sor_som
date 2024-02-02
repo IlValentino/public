@@ -14,11 +14,11 @@ spell_crit_coefficient = 1 + 0.5 * spell_crit_chance
 
 # model functions
 def sor_three(speed):
-    return 5.2 * speed - 2
+    return 5 * speed - 1
 
 
 def sor_five(speed):
-    return 8.3 * speed - 0.3
+    return 10 * speed - 1.5
 
 
 def chance(p):
