@@ -2,7 +2,7 @@ import math
 
 # variables
 extra_attack_power = 85
-strength_without_weapon_talent = 200
+strength_without_weapon_talent = 300
 level = 40
 base_attack_power = 3 * level - 20
 
@@ -79,7 +79,7 @@ parry_hit_per_sec = extra_hit_per_parry * parry_per_sec
 
 enemy_parry_chance = 4 / 100
 parry_coefficient = 1 - enemy_parry_chance
-enemy_dodge_chance = 3 / 100
+enemy_dodge_chance = 6 / 100
 dodge_coefficient = 1 - enemy_dodge_chance
 armor_mitigation = 6 / 100
 armor_coefficient = 1 - armor_mitigation
@@ -102,7 +102,7 @@ melee = (base_melee * melee_crit_coefficient * armor_coefficient * prot_melee_mi
 
 divine_storm = (1.1 * base_melee * armor_coefficient * dodge_coefficient * parry_coefficient
                 * prot_melee_miss_coefficient)
-divine_storm_heal = 0.25 * divine_storm
+divine_storm_heal = 0.25 * base_melee * 1.1
 
 sor_seal_three = (sor_three(one_weapon_speed) * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
 sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
@@ -119,12 +119,14 @@ holy_dps_five = (exorcism/15 + sor_judge_five/8 + sor_seal_five/one_weapon_speed
 
 holy_dps = max(holy_dps_five, holy_dps_three)
 
-non_holy_dps = melee/one_weapon_speed + melee * parry_hit_per_sec + 1.11 * divine_storm/10
+wf_pps = 0.2/one_weapon_speed
+wf_hit = melee + one_weapon_speed * 0.2 * attack_power/14
+non_holy_dps = melee/one_weapon_speed + melee * parry_hit_per_sec + 1.11 * divine_storm/10 + wf_pps * wf_hit
 heal = divine_storm_heal
 
-sor_threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5 + 0.5 * 0.5 * heal * 2.886
+sor_threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5 + 0.5 * heal * 2.886
 
-print("TPS Holy Prot with SoR and 1h hammer:")
+print("TPS Holy Prot with SoR and BFD hammer:")
 print(sor_threat_per_sec)
 if holy_dps_three > holy_dps_five:
     print("rank 3 was used")
@@ -150,12 +152,12 @@ melee = (base_melee * melee_crit_coefficient * armor_coefficient * prot_melee_mi
 
 divine_storm = (1.1 * base_melee * armor_coefficient * dodge_coefficient * parry_coefficient
                 * prot_melee_miss_coefficient)
-divine_storm_heal = 0.25 * divine_storm
+divine_storm_heal = 0.25 * base_melee * 1.1
 
 sor_seal_three = (sor_three(one_alt_weapon_speed) * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
 sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
-sor_seal_five = (sor_five(one_alt_weapon_speed) * 1.15 + 0.10 * spell_power) * prot_melee_miss_coefficient
+sor_seal_five = (sor_five(one_alt_weapon_speed) * 1.15 + 0.1 * spell_power) * prot_melee_miss_coefficient
 sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
 holy_dps_three = (exorcism/15 + sor_judge_three/8 + sor_seal_three/one_alt_weapon_speed + consecration/8
@@ -166,13 +168,15 @@ holy_dps_five = (exorcism/15 + sor_judge_five/8 + sor_seal_five/one_alt_weapon_s
 
 holy_dps = max(holy_dps_five, holy_dps_three)
 
+wf_pps = 0.2/one_alt_weapon_speed
+wf_hit = melee + one_alt_weapon_speed * 0.2 * attack_power/14
 non_holy_dps = (melee/one_alt_weapon_speed + melee * parry_hit_per_sec + 1.11 * divine_storm/10 +
-                weapon_proc_damage * weapon_ppm/60)
+                weapon_proc_damage * weapon_ppm/60 + wf_pps * wf_hit)
 heal = divine_storm_heal
 
-sor_alt_threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5 + 0.5 * 0.5 * heal * 2.886
+sor_alt_threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5 + 0.5 * heal * 2.886
 
-print("TPS Holy Prot with SoR and 1h sword:")
+print("TPS Holy Prot with SoR and 1h gnomer sword:")
 print(sor_alt_threat_per_sec)
 if holy_dps_three > holy_dps_five:
     print("rank 3 was used")
@@ -202,7 +206,10 @@ som_judge = 0.7 * base_melee * melee_crit_coefficient * spell_miss_coefficient
 
 holy_dps = (exorcism/15 + consecration/8 + som_judge/10 + som_seal/two_weapon_speed + ret_aura/enemy_speed
             + som_seal * parry_hit_per_sec)
-non_holy_dps = melee/two_weapon_speed + melee * parry_hit_per_sec
+
+wf_pps = 0.2/two_weapon_speed
+wf_hit = melee + two_weapon_speed * 0.2 * attack_power/14
+non_holy_dps = melee/two_weapon_speed + melee * parry_hit_per_sec + wf_hit * wf_pps
 
 som_threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5
 print("TPS Holy Prot with SoM and 2h:")
@@ -230,7 +237,7 @@ melee = (base_melee * ret_melee_crit_coefficient * armor_coefficient * melee_mis
 
 divine_storm = (1.1 * base_melee * ret_melee_crit_coefficient * armor_coefficient * melee_miss_coefficient
                 * dodge_coefficient * parry_coefficient)
-divine_storm_heal = 0.25 * divine_storm
+divine_storm_heal = 0.25 * 1.1 * base_melee
 
 soc_seal = ((0.7 * base_melee + 0.2 * spell_power) * ret_melee_crit_coefficient * parry_coefficient * dodge_coefficient
             * melee_miss_coefficient)
@@ -239,10 +246,13 @@ soc_ppm = 7
 soc_pps = soc_ppm/60
 
 holy_dps = consecration/8 + exorcism/15 + ret_aura/enemy_speed + soc_seal * soc_pps + soc_judge/8
-non_holy_dps = melee/two_weapon_speed + 1.11 * divine_storm/10 + melee * ret_parry_hit_per_sec
+
+wf_pps = 0.2/two_weapon_speed
+wf_hit = melee + two_weapon_speed * 0.2 * attack_power/14
+non_holy_dps = melee/two_weapon_speed + 1.11 * divine_storm/10 + melee * ret_parry_hit_per_sec + wf_pps * wf_hit
 heal_per_sec = divine_storm_heal/10
 
-holy_soc_threat_per_sec = holy_dps * 2.22 + non_holy_dps * 1.5 + heal_per_sec * 0.5 * 0.5 * 2.22
+holy_soc_threat_per_sec = holy_dps * 2.22 + non_holy_dps * 1.5 + heal_per_sec * 0.5 * 2.22
 print("TPS Holy Ret with SoC and 2h:")
 print(holy_soc_threat_per_sec)
 
@@ -260,7 +270,7 @@ melee = (base_melee * ret_melee_crit_coefficient * armor_coefficient * prot_mele
 
 divine_storm = (1.1 * base_melee * ret_melee_crit_coefficient * armor_coefficient * prot_melee_miss_coefficient *
                 dodge_coefficient * parry_coefficient)
-divine_storm_heal = 0.25 * divine_storm
+divine_storm_heal = 0.25 * 1.1 * base_melee
 
 soc_seal = ((0.7 * base_melee + 0.2 * spell_power) * ret_melee_crit_coefficient * parry_coefficient * dodge_coefficient
             * prot_melee_miss_coefficient)
@@ -270,12 +280,19 @@ soc_pps = soc_ppm/60
 
 holy_dps = (exorcism/art_of_war_cd(ret_melee_crit_chance, two_weapon_speed) + ret_aura/enemy_speed + soc_seal * soc_pps
             + soc_judge/8)
-non_holy_dps = melee/two_weapon_speed + 1.11 * divine_storm/10 + melee * ret_parry_hit_per_sec
+
+wf_pps = 0.2/two_weapon_speed
+wf_hit = melee + two_weapon_speed * 0.2 * attack_power/14
+non_holy_dps = melee/two_weapon_speed + divine_storm/10 + melee * ret_parry_hit_per_sec + wf_pps * wf_hit
 heal_per_sec = divine_storm_heal/10
 
-prot_soc_threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5 + heal_per_sec * 0.5 * 0.5 * 2.886
+prot_soc_threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5 + heal_per_sec * 0.5 * 2.886
 print("TPS Prot Ret with SoC and 2h:")
 print(prot_soc_threat_per_sec)
+
+print("Relative performance:")
+print(max(sor_threat_per_sec, sor_alt_threat_per_sec) / max(som_threat_per_sec, holy_soc_threat_per_sec,
+                                                            prot_soc_threat_per_sec))
 
 print("Relative performance:")
 print(max(sor_threat_per_sec, sor_alt_threat_per_sec) / max(som_threat_per_sec, holy_soc_threat_per_sec,
