@@ -1,8 +1,8 @@
 import math
 
 # variables
-extra_attack_power = 85
-strength_without_weapon_talent = 300
+extra_attack_power = 85 + 85
+strength_without_weapon_talent = 250 * 1.1
 level = 40
 base_attack_power = 3 * level - 20
 
@@ -104,10 +104,12 @@ divine_storm = (1.1 * base_melee * armor_coefficient * dodge_coefficient * parry
                 * prot_melee_miss_coefficient)
 divine_storm_heal = 0.25 * base_melee * 1.1
 
-sor_seal_three = (sor_three(one_weapon_speed) * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
+sor_seal_three = ((sor_three(one_weapon_speed) * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
+                  * dodge_coefficient * parry_coefficient)
 sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
-sor_seal_five = (sor_five(one_weapon_speed) * 1.15 + 0.10 * spell_power) * prot_melee_miss_coefficient
+sor_seal_five = ((sor_five(one_weapon_speed) * 1.15 + 0.10 * spell_power) * prot_melee_miss_coefficient
+                 * dodge_coefficient * parry_coefficient)
 sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
 
@@ -154,10 +156,12 @@ divine_storm = (1.1 * base_melee * armor_coefficient * dodge_coefficient * parry
                 * prot_melee_miss_coefficient)
 divine_storm_heal = 0.25 * base_melee * 1.1
 
-sor_seal_three = (sor_three(one_alt_weapon_speed) * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
+sor_seal_three = ((sor_three(one_alt_weapon_speed) * 1.15 + 0.18 * spell_power) * prot_melee_miss_coefficient
+                  * dodge_coefficient * parry_coefficient)
 sor_judge_three = ((53+58)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
-sor_seal_five = (sor_five(one_alt_weapon_speed) * 1.15 + 0.1 * spell_power) * prot_melee_miss_coefficient
+sor_seal_five = ((sor_five(one_alt_weapon_speed) * 1.15 + 0.1 * spell_power) * prot_melee_miss_coefficient
+                 * dodge_coefficient * parry_coefficient)
 sor_judge_five = ((96+105)/2 * 1.15 + 0.5 * spell_power) * spell_miss_coefficient * spell_crit_coefficient
 
 holy_dps_three = (exorcism/15 + sor_judge_three/8 + sor_seal_three/one_alt_weapon_speed + consecration/8
@@ -289,10 +293,6 @@ heal_per_sec = divine_storm_heal/10
 prot_soc_threat_per_sec = holy_dps * 2.886 + non_holy_dps * 1.5 + heal_per_sec * 0.5 * 2.886
 print("TPS Prot Ret with SoC and 2h:")
 print(prot_soc_threat_per_sec)
-
-print("Relative performance:")
-print(max(sor_threat_per_sec, sor_alt_threat_per_sec) / max(som_threat_per_sec, holy_soc_threat_per_sec,
-                                                            prot_soc_threat_per_sec))
 
 print("Relative performance:")
 print(max(sor_threat_per_sec, sor_alt_threat_per_sec) / max(som_threat_per_sec, holy_soc_threat_per_sec,
