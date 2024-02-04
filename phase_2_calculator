@@ -363,11 +363,11 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
 
     judge_cd = 10 - add_toggler(imp_judge, 2)
 
-    exorcism_cd = (15 * mult_toggler(art_of_war, 0)
-                   + aow_expected_cd(speed=weapon_speed, crit=melee_crit, imp_judge=imp_judge,
-                                     aow_judge_proc=aow_judge_proc, seal=seal) * mult_toggler(not art_of_war, 0))
-
     melee_cd = weapon_speed * mult_toggler(wb, 0.9)
+
+    exorcism_cd = (15 * mult_toggler(art_of_war, 0)
+                   + aow_expected_cd(speed=melee_cd, crit=melee_crit, imp_judge=imp_judge,
+                                     aow_judge_proc=aow_judge_proc, seal=seal) * mult_toggler(not art_of_war, 0))
 
     # boss mitigation
     evasion_c = evasion_coefficient(enemy_dodge_chance=boss_dodge, enemy_parry_chance=boss_parry,
@@ -524,7 +524,7 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
     print(f"Build {name}")
     print(f"TPS: {round(tps, ndigits=1)}")
     print(f"DPS: {round(holy_dps+non_holy_dps, ndigits=1)}")
-    print(f"{round(holy_dps/(non_holy_dps+holy_dps)*100, ndigits=1)}% holy damage.")
+    print(f"{round(holy_dps/(non_holy_dps+holy_dps)*100, ndigits=1)}% holy damage")
     print(f"Mana loss per sec: {-round(mana_net_flow, ndigits=1)}")
     print(f"Time until oom: {time_until_oom}")
     print()
@@ -568,7 +568,7 @@ threat_calculator(weapon_speed=Weapon_Speed, base_melee_crit=Melee_Crit, aow_jud
 Build_Name = "Shockadin with BFD hammer"
 
 # holy
-Improved_SoR = False
+Improved_SoR = True
 Improved_BoW = True
 Divine_Strength = True
 Divine_Intellect = True
