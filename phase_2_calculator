@@ -1,8 +1,8 @@
 import random
 
-# talent toggles
+# build name
 Build_Name = "Holy Prot with BFD hammer"
-
+# talent toggles
 # holy
 Improved_SoR = True
 Improved_BoW = False
@@ -73,6 +73,7 @@ Enemy_Speed = 2
 
 # calc setting
 AoW_Judge_Proc = True
+Extended_Details = True
 
 # statics at 40
 Base_Mana = 987
@@ -199,7 +200,7 @@ def max_mana(gear_int, arcane, divine_int, kings):
     class_int = Base_Intellect
     extra_int = gear_int + add_toggler(arcane, 15)
     intellect = (class_int + extra_int) * mult_toggler(divine_int, 1.1) * mult_toggler(kings, 1.1)
-    mana = base_mana + 20 - (intellect - 20) * 15
+    mana = base_mana + 20 + (intellect - 20) * 15
     return mana
 
 
@@ -508,18 +509,44 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
 
     mana_net_flow = mana_gain_per_sec - mana_loss_per_sec
 
+    if mana_net_flow < 0:
+        time_until_oom = round(-mana/mana_net_flow, ndigits=1)
+    else:
+        time_until_oom = "Never"
+
     # threat per sec
     holy_mod = holy_threat_coefficient(imp_rf=imp_rf)
     non_holy_mod = 1.5
 
     tps = holy_dps * holy_mod + non_holy_dps * non_holy_mod + ds_hps * 0.5 * holy_mod
 
+    print("---------------------------------------------------------")
     print(f"Build {name}")
     print(f"TPS: {round(tps, ndigits=1)}")
     print(f"DPS: {round(holy_dps+non_holy_dps, ndigits=1)}")
     print(f"{round(holy_dps/(non_holy_dps+holy_dps)*100, ndigits=1)}% holy damage.")
     print(f"Mana loss per sec: {-round(mana_net_flow, ndigits=1)}")
+    print(f"Time until oom: {time_until_oom}")
     print()
+    if Extended_Details:
+        print("DPS Values")
+        print(f"Melee: {round(melee_dps, ndigits=1)}")
+        if cons:
+            print(f"Consecration: {round(cons_dps, ndigits=1)}")
+        if seal == "sor":
+            print(f"Seal: {round(sor_dps, ndigits=1)}")
+        if seal == "soc":
+            print(f"Seal: {round(soc_dps, ndigits=1)}")
+        if seal == "som":
+            print(f"Seal: {round(som_dps, ndigits=1)}")
+        if shock:
+            print(f"Holy Shock: {round(holy_shock_dps, ndigits=1)}")
+        if exorcism:
+            print(f"Exorcism: {round(exorcism_dps, ndigits=1)}")
+        if ret_aura:
+            print(f"Ret aura: {round(ret_aura_dps, ndigits=1)}")
+        if ds:
+            print(f"Divine Storm: {round(divine_storm_dps, ndigits=1)}")
 
 
 # execution
