@@ -405,7 +405,7 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
 
     holy_shock_damage = holy_shock(sp) * spell_miss_c * spell_crit_c
     holy_shock_dps_without_df = holy_shock_damage / holy_shock_cd
-    holy_shock_dps_with_df = (3 * holy_shock_damage + 1.5 * holy_shock(sp) * spell_miss_c)/divine_storm_cd
+    holy_shock_dps_with_df = (3 * holy_shock_damage + 1.5 * holy_shock(sp) * spell_miss_c)/divine_favor_cd
     if divine_favor:
         holy_shock_dps = holy_shock_dps_with_df * mult_toggler(not shock, 0)
     else:
