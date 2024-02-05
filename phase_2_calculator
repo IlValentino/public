@@ -4,12 +4,11 @@ import random
 Build_Name = "Holy Prot with BFD hammer"
 # talent toggles
 # holy
-Improved_SoR = True
+Improved_SoR = False
 Improved_BoW = False
 Divine_Strength = True
-Divine_Intellect = False
+Divine_Intellect = True
 Holy_Power = False
-Illumination = False
 # prot
 Precision = True
 Improved_RF = True
@@ -26,7 +25,7 @@ Vengeance = False
 # abilities toggle
 Consecration = True
 Seal = "sor"
-Divine_Storm = True
+Divine_Storm = False
 Exorcism = True
 Sheath = True
 Holy_Shock = False
@@ -53,7 +52,7 @@ Racial_Bonus = True
 Kings = True
 
 BoM = True
-Horn = False
+Horn = True
 
 WB = True
 Battle_Shout = True
@@ -451,16 +450,16 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
                       bonus_sp, sheath, weapon_enchant_bonus, weapon_min, weapon_max, extra_crit, precision, boss_dodge,
                       boss_parry, armor_mitigation, ds, name, spell_crit, ret_aura, boss_speed, wf,
                       deflection, base_parry, exorcism, shock, crusader_judge, weapon_sp, weapon_str, benediction,
-                      guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor, illumination,
+                      guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor,
                       divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance, racial,
                       extra_wep_skill, extra_hit, horn):
     # stats
     skill_bonus = add_toggler(racial, 5) + extra_wep_skill
 
-    strength = ((base_strength + weapon_str + add_toggler(horn, 40)) * mult_toggler(kings, 1.1) 
+    strength = ((base_strength + weapon_str + add_toggler(horn, 40)) * mult_toggler(kings, 1.1)
                 * mult_toggler(divine_strength, 1.1))
 
-    melee_crit = melee_crit_chance(extra_crit=extra_crit, extra_agi=gear_agi+add_toggler(horn, 40), 
+    melee_crit = melee_crit_chance(extra_crit=extra_crit, extra_agi=gear_agi+add_toggler(horn, 40),
                                    conviction_points=conviction_points, kings=kings)
 
     melee_crit_c = crit_coefficient(crit_chance=melee_crit)
@@ -653,11 +652,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     wis_judge_pps = wis_judge_proc_chance * 1 / melee_cd
     wis_judge_mps = wis_judge_mana * wis_judge_pps * mult_toggler(not wis_judge, 0)
 
-    illumination_pps = (1 / (cd_ratio*holy_shock_cd) + (cd_ratio-1) / divine_favor_cd * spell_crit_c) * spell_miss_c
-    illumination_mana = holy_shock_mana
-    illumination_mps = illumination_mana * illumination_pps * mult_toggler(not illumination, 0)
-
-    mana_gain_per_sec = bow_mps + guarded_mps + wis_judge_mps + illumination_mps
+    mana_gain_per_sec = bow_mps + guarded_mps + wis_judge_mps
 
     mana_net_flow = mana_gain_per_sec - mana_loss_per_sec
 
@@ -718,13 +713,14 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   crusader_judge=Judge_Of_Crusader, weapon_sp=Weapon_SP, weapon_str=Weapon_Strength,
                   benediction=Benediction, arcane=Arcane_Intellect, gear_int=Gear_Intellect, bow=BoW,
                   guarded=Guarded_By_Light, wis_judge=Judge_Of_Wisdom, holy_power=Holy_Power, imp_bow=Improved_BoW,
-                  divine_favor=Divine_Favor, illumination=Illumination, divine_int=Divine_Intellect,
+                  divine_favor=Divine_Favor, divine_int=Divine_Intellect,
                   handedness=Handedness, imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura,
                   two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
                   extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn)
 
+# build 2
 # build name
-Build_Name = "Debugged Shockadin with BFD hammer"
+Build_Name = "Shockadin with BFD hammer"
 # talent toggles
 # holy
 Improved_SoR = True
@@ -732,7 +728,6 @@ Improved_BoW = True
 Divine_Strength = True
 Divine_Intellect = True
 Holy_Power = True
-Illumination = True
 # prot
 Precision = False
 Improved_RF = False
@@ -785,7 +780,7 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   crusader_judge=Judge_Of_Crusader, weapon_sp=Weapon_SP, weapon_str=Weapon_Strength,
                   benediction=Benediction, arcane=Arcane_Intellect, gear_int=Gear_Intellect, bow=BoW,
                   guarded=Guarded_By_Light, wis_judge=Judge_Of_Wisdom, holy_power=Holy_Power, imp_bow=Improved_BoW,
-                  divine_favor=Divine_Favor, illumination=Illumination, divine_int=Divine_Intellect,
-                  handedness=Handedness, imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura,
-                  two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
-                  extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn)
+                  divine_favor=Divine_Favor, divine_int=Divine_Intellect, handedness=Handedness,
+                  imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura, two_hand_spec=Two_Hand_Spec,
+                  sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus, extra_wep_skill=Bonus_Skill,
+                  extra_hit=Bonus_Hit, horn=Horn)
