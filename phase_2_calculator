@@ -419,14 +419,14 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
     sanctity_c = mult_toggler(sanctity_aura, 1.1)
     two_hand_spec_c = mult_toggler(handedness == 2 and two_hand_spec, 1.06)
     if vengeance_pps >= 1/8:
-        vengeance_c = 1.15 * mult_toggler(not vengeance, 0)
+        vengeance_c = mult_toggler(vengeance, 1.15)
     else:
-        vengeance_c = (1.2 * vengeance_pps + 1) * mult_toggler(not vengeance, 0)
+        vengeance_c = mult_toggler(vengeance, 1.2 * vengeance_pps + 1)
 
     base_melee = base_melee_hit(ap=ap, weapon_min=weapon_min, weapon_max=weapon_max, weapon_speed=weapon_speed,
                                 wep_enchant_bonus=weapon_enchant_bonus)
 
-    melee = base_melee * evasion_c * armor_c * glance_c * melee_crit_c * two_hand_spec_c * vengeance_c
+    melee = base_melee * evasion_c * armor_c * glance_c * melee_crit_c * two_hand_spec_c * vengeance_c 
 
     wf_hit = melee + 0.2 * ap * weapon_speed / 14 * evasion_c * melee_crit_c * glance_c * two_hand_spec_c * vengeance_c
     wf_dps = wf_pps * wf_hit * mult_toggler(not wf, 0)
@@ -461,14 +461,14 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
                     two_hand_spec_c)
     soc_judge_dmg = soc_judge_three(sp=sp, in_cap=False) * melee_crit_c * spell_miss_c
 
-    soc_dps = (soc_seal_dmg * soc_pps + soc_judge_dmg / judge_cd) * seal_enabler("soc", seal * sanctity_c * 
-                                                                                 vengeance_c)
+    soc_dps = ((soc_seal_dmg * soc_pps + soc_judge_dmg / judge_cd) * seal_enabler("soc", seal) *
+               sanctity_c * vengeance_c)
 
     som_seal_dmg = som_seal(melee=base_melee) * evasion_c * melee_crit_c * two_hand_spec_c
     som_judge_dmg = som_judge(melee=base_melee) * melee_crit_c * spell_miss_c
 
     som_dps = (som_seal_dmg*(parry_hit_per_sec+1/melee_cd+wf_pps)
-               + som_judge_dmg / judge_cd) * seal_enabler("som", seal * sanctity_c * vengeance_c)
+               + som_judge_dmg / judge_cd) * seal_enabler("som", seal) * sanctity_c * vengeance_c
 
     divine_storm_dmg = divine_storm(melee=base_melee) * evasion_c * armor_c * melee_crit_c
     divine_storm_dps = divine_storm_dmg / divine_storm_cd * mult_toggler(not ds, 0) * two_hand_spec_c * vengeance_c
