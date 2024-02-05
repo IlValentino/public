@@ -525,7 +525,7 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
     holy_shock_damage = holy_shock(sp) * spell_miss_c * spell_crit_c
     holy_shock_dps_without_df = holy_shock_damage / holy_shock_cd
     cd_ratio = divine_favor_cd / holy_shock_cd
-    holy_shock_dps_with_df = ((cd_ratio-1) * holy_shock_damage + 1.5 * holy_shock(sp) * spell_miss_c) / cd_ratio
+    holy_shock_dps_with_df = ((cd_ratio-1) * holy_shock_damage + 1.5 * holy_shock(sp) * spell_miss_c) / divine_favor_cd
     if divine_favor:
         holy_shock_dps = holy_shock_dps_with_df * mult_toggler(not shock, 0) * sanctity_c * vengeance_c
     else:
@@ -727,7 +727,7 @@ Guarded_By_Light = False
 Art_Of_War = True
 
 Holy_Shock = True
-Divine_Favor = True
+Divine_Favor = False
 
 # weapon values
 Weapon_Min = 17
