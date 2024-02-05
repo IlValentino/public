@@ -71,6 +71,7 @@ Melee_Crit = 15 / 100
 Spell_Crit = 6 / 100
 Base_Parry = 5 / 100
 
+Bonus_Hit = 0
 Gear_Intellect = 0
 
 # boss values
@@ -264,17 +265,33 @@ def glance_reduction_func(boss_level, player_level, skill_bonus):
         exit()
 
 
-def miss_prob(boss_level, player_level, skill_bonus):
+def melee_miss_prob(boss_level, player_level, skill_bonus, precision, extra_hit):
     weapon_skill = 5 * player_level + skill_bonus
     boss_defense = 5 * boss_level
     delta = boss_defense - weapon_skill
+
     if delta < 0:
         print("Wrong level values.")
         exit()
     if delta >= 11:
-        return (5 + 0.2 * delta) / 100
+        return (5 + 0.2 * delta) / 100 - add_toggler(precision, 3/100) - extra_hit
     elif 10 >= delta:
-        return (5 + 0.1 * delta) / 100
+        return (5 + 0.1 * delta) / 100 - add_toggler(precision, 3/100) - extra_hit
+
+
+def spell_miss_prob(boss_level, player_level, extra_hit):
+    level_delta = boss_level - player_level
+    if level_delta == 1:
+        base_miss = 5/100
+    elif level_delta == 2:
+        base_miss = 6/100
+    elif level_delta == 3:
+        base_miss = 17/100
+    else:
+        print("Unexpected level delta.")
+        exit()
+    output = base_miss - extra_hit
+    return output
 
 
 def max_mana(gear_int, arcane, divine_int, kings):
@@ -310,10 +327,10 @@ def armor_coefficient(armor_mitigation):
     return 1 - armor_mitigation
 
 
-def evasion_coefficient(enemy_dodge_chance, enemy_parry_chance, miss_chance, precision):
+def evasion_coefficient(enemy_dodge_chance, enemy_parry_chance, miss_chance):
     dodge_coefficient = 1 - enemy_dodge_chance
     parry_coefficient = 1 - enemy_parry_chance
-    miss_coefficient = 1 - miss_chance + add_toggler(precision, 3 / 100)
+    miss_coefficient = 1 - miss_chance
     return dodge_coefficient * parry_coefficient * miss_coefficient
 
 
@@ -424,7 +441,7 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
                       deflection, base_parry, exorcism, shock, crusader_judge, weapon_sp, weapon_str, benediction,
                       guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor, illumination,
                       divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance, racial,
-                      extra_wep_skill):
+                      extra_wep_skill, extra_hit):
     # stats
     skill_bonus = add_toggler(racial, 5) + extra_wep_skill
 
@@ -469,14 +486,16 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
                    mult_toggler(not art_of_war, 0))
 
     # boss mitigation
-    miss_chance = miss_prob(boss_level=Boss_Level, player_level=Player_Level, skill_bonus=skill_bonus)
+    melee_miss_chance = melee_miss_prob(boss_level=Boss_Level, player_level=Player_Level, skill_bonus=skill_bonus,
+                                        precision=precision, extra_hit=extra_hit)
+    spell_miss_chance = spell_miss_prob(boss_level=Boss_Level, player_level=Player_Level, extra_hit=extra_hit)
 
     evasion_c = evasion_coefficient(enemy_dodge_chance=boss_dodge, enemy_parry_chance=boss_parry,
-                                    miss_chance=miss_chance, precision=precision)
+                                    miss_chance=melee_miss_chance)
 
     armor_c = armor_coefficient(armor_mitigation=armor_mitigation)
 
-    spell_miss_c = 1 - miss_chance
+    spell_miss_c = 1 - spell_miss_chance
 
     glance_chance = 0.3
     glance_reduction = glance_reduction_func(boss_level=Boss_Level, player_level=Player_Level, skill_bonus=skill_bonus)
@@ -621,7 +640,7 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
     wis_judge_pps = wis_judge_proc_chance * 1 / melee_cd
     wis_judge_mps = wis_judge_mana * wis_judge_pps * mult_toggler(not wis_judge, 0)
 
-    illumination_pps = (1/(cd_ratio*holy_shock_cd)+(cd_ratio-1)/(cd_ratio*holy_shock_cd)*spell_crit_c)*spell_miss_c
+    illumination_pps = (1 / (cd_ratio*holy_shock_cd) + (cd_ratio-1) / divine_favor_cd * spell_crit_c) * spell_miss_c
     illumination_mana = holy_shock_mana
     illumination_mps = illumination_mana * illumination_pps * mult_toggler(not illumination, 0)
 
@@ -688,7 +707,7 @@ threat_calculator(weapon_speed=Weapon_Speed, base_melee_crit=Melee_Crit, aow_jud
                   divine_favor=Divine_Favor, illumination=Illumination, divine_int=Divine_Intellect,
                   handedness=Handedness, imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura,
                   two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
-                  extra_wep_skill=Bonus_Skill)
+                  extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit)
 
 # build name
 Build_Name = "Debugged Shockadin with BFD hammer"
@@ -727,7 +746,7 @@ Guarded_By_Light = False
 Art_Of_War = True
 
 Holy_Shock = True
-Divine_Favor = False
+Divine_Favor = True
 
 # weapon values
 Weapon_Min = 17
@@ -755,4 +774,4 @@ threat_calculator(weapon_speed=Weapon_Speed, base_melee_crit=Melee_Crit, aow_jud
                   divine_favor=Divine_Favor, illumination=Illumination, divine_int=Divine_Intellect,
                   handedness=Handedness, imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura,
                   two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
-                  extra_wep_skill=Bonus_Skill)
+                  extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit)
