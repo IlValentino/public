@@ -48,6 +48,7 @@ Weapon_Enchant_Bonus = 10
 Weapon_Strength = 3
 Weapon_SP = 0
 Handedness = 1  # 1 or 2
+Racial_Bonus = True
 
 # raid buffs
 Kings = True
@@ -65,6 +66,7 @@ Gear_Strength = 200  # class base stat included but before talent, buff, weapon 
 Gear_AP = 0
 Bonus_SP = 0
 Bonus_Crit = 0
+Bonus_Skill = 0
 Melee_Crit = 15 / 100
 Spell_Crit = 6 / 100
 Base_Parry = 5 / 100
@@ -74,7 +76,6 @@ Gear_Intellect = 0
 # boss values
 Boss_Dodge = 6 / 100
 Boss_Parry = 4 / 100
-Base_Miss = 6 / 100
 Boss_Armor_Mitigation = 6 / 100
 Enemy_Speed = 2
 
@@ -85,6 +86,8 @@ Extended_Details = True
 # statics at 40
 Base_Mana = 987
 Base_Intellect = 49
+Boss_Level = 42
+Player_Level = 40
 
 
 # utility functions
@@ -194,7 +197,7 @@ def aow_expected_cd(speed, crit, imp_judge, aow_judge_proc, seal):
 
         t = round(t+0.1, ndigits=1)
 
-        if t == 15 * target_cycles:
+        if t == cd * target_cycles:
             break
 
     new_cd = t/exorcism_counter
@@ -202,6 +205,40 @@ def aow_expected_cd(speed, crit, imp_judge, aow_judge_proc, seal):
 
 
 # mechanics functions
+def glance_prob(boss_level, player_level, skill_bonus):
+    boss_defense = 5 * boss_level
+    base_weapon_skill = 5 * player_level
+    weapon_skill = base_weapon_skill + skill_bonus
+    output = 0.1 + (boss_defense-min(weapon_skill, base_weapon_skill)) * 0.02
+    return output
+
+
+def glance_reduction_func(boss_level, player_level, skill_bonus):
+    weapon_skill = 5 * player_level + skill_bonus
+    boss_defense = 5 * boss_level
+    delta = boss_defense - weapon_skill
+    if delta <= 5:
+        return 0.05
+    elif round(delta, ndigits=1) == 10:
+        return 0.15
+    else:
+        print("Unexpected glance reduction.")
+        exit()
+
+
+def miss_prob(boss_level, player_level, skill_bonus):
+    weapon_skill = 5 * player_level + skill_bonus
+    boss_defense = 5 * boss_level
+    delta = boss_defense - weapon_skill
+    if delta < 0:
+        print("Wrong level values.")
+        exit()
+    if delta >= 11:
+        return (5 + 0.2 * delta)/100
+    elif 10 >= delta:
+        return (5 + 0.1 * delta)/100
+
+
 def max_mana(gear_int, arcane, divine_int, kings):
     base_mana = Base_Mana
     class_int = Base_Intellect
@@ -345,12 +382,15 @@ def divine_storm_heal(melee):
 def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor, imp_rf, imp_judge, art_of_war,
                       conviction_points, cons, seal, base_strength, gear_ap, kings, bom, battle_shout, divine_strength,
                       bonus_sp, sheath, weapon_enchant_bonus, weapon_min, weapon_max, extra_crit, precision, boss_dodge,
-                      boss_parry, miss_chance, armor_mitigation, ds, name, spell_crit, ret_aura, boss_speed, wf,
+                      boss_parry, armor_mitigation, ds, name, spell_crit, ret_aura, boss_speed, wf,
                       deflection, base_parry, exorcism, shock, crusader_judge, weapon_sp, weapon_str, benediction,
                       guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor, illumination,
-                      divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance):
+                      divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance, racial,
+                      extra_wep_skill):
 
     # stats
+    skill_bonus = add_toggler(racial, 5) + extra_wep_skill
+
     strength = (base_strength + weapon_str) * mult_toggler(kings, 1.1) * mult_toggler(divine_strength, 1.1)
 
     melee_crit = melee_crit_chance(base_crit=base_melee_crit, extra_crit=extra_crit,
@@ -386,6 +426,8 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
                                      aow_judge_proc=aow_judge_proc, seal=seal) * mult_toggler(not art_of_war, 0))
 
     # boss mitigation
+    miss_chance = miss_prob(boss_level=Boss_Level, player_level=Player_Level, skill_bonus=skill_bonus)
+
     evasion_c = evasion_coefficient(enemy_dodge_chance=boss_dodge, enemy_parry_chance=boss_parry,
                                     miss_chance=miss_chance, precision=precision)
 
@@ -394,7 +436,7 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
     spell_miss_c = 1 - miss_chance
 
     glance_chance = 0.3
-    glance_reduction = 0.15
+    glance_reduction = glance_reduction_func(boss_level=Boss_Level, player_level=Player_Level, skill_bonus=skill_bonus)
     reduction_coefficient = 1 - glance_reduction
     glance_c = glance_chance * reduction_coefficient + (1 - glance_chance)
 
@@ -594,7 +636,7 @@ threat_calculator(weapon_speed=Weapon_Speed, base_melee_crit=Melee_Crit, aow_jud
                   gear_ap=Gear_AP, kings=Kings, bom=BoM, battle_shout=Battle_Shout, divine_strength=Divine_Strength,
                   bonus_sp=Bonus_SP, sheath=Sheath, weapon_enchant_bonus=Weapon_Enchant_Bonus, weapon_min=Weapon_Min,
                   weapon_max=Weapon_Max, extra_crit=Bonus_Crit, precision=Precision, boss_dodge=Boss_Dodge,
-                  boss_parry=Boss_Parry, miss_chance=Base_Miss, armor_mitigation=Boss_Armor_Mitigation, ds=Divine_Storm,
+                  boss_parry=Boss_Parry, armor_mitigation=Boss_Armor_Mitigation, ds=Divine_Storm,
                   name=Build_Name, spell_crit=Spell_Crit, ret_aura=Ret_Aura, boss_speed=Enemy_Speed, wf=WF,
                   deflection=Deflection, base_parry=Base_Parry, exorcism=Exorcism, shock=Holy_Shock,
                   crusader_judge=Judge_Of_Crusader, weapon_sp=Weapon_SP, weapon_str=Weapon_Strength,
@@ -602,69 +644,5 @@ threat_calculator(weapon_speed=Weapon_Speed, base_melee_crit=Melee_Crit, aow_jud
                   guarded=Guarded_By_Light, wis_judge=Judge_Of_Wisdom, holy_power=Holy_Power, imp_bow=Improved_BoW,
                   divine_favor=Divine_Favor, illumination=Illumination, divine_int=Divine_Intellect,
                   handedness=Handedness, imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura,
-                  two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance)
-
-# build name
-Build_Name = "Deep Ret with Bonebiter"
-# talent toggles
-# holy
-Improved_SoR = False
-Improved_BoW = False
-Divine_Strength = False
-Divine_Intellect = False
-Holy_Power = False
-Illumination = False
-# prot
-Precision = False
-Improved_RF = False
-# ret
-Conviction_Points = 5
-Improved_Judge = True
-Improved_Crusader = True
-Deflection = True
-Benediction = True
-Improved_Ret_Aura = True
-Two_Hand_Spec = True
-Vengeance = True
-
-# abilities toggle
-Consecration = False
-Seal = "soc"
-Divine_Storm = True
-Exorcism = True
-Sheath = True
-
-Ret_Aura = False
-Sanctity_Aura = True
-
-Guarded_By_Light = False
-Art_Of_War = True
-
-Holy_Shock = False
-Divine_Favor = False
-
-# weapon values
-Weapon_Min = 105
-Weapon_Max = 159
-Weapon_Speed = 3.4
-Weapon_Enchant_Bonus = 10
-
-Weapon_Strength = 20
-Weapon_SP = 0
-Handedness = 2  # 1 or 2
-
-threat_calculator(weapon_speed=Weapon_Speed, base_melee_crit=Melee_Crit, aow_judge_proc=AoW_Judge_Proc, wb=WB,
-                  imp_sor=Improved_SoR, imp_rf=Improved_RF, imp_judge=Improved_Judge, art_of_war=Art_Of_War,
-                  conviction_points=Conviction_Points, cons=Consecration, seal=Seal, base_strength=Gear_Strength,
-                  gear_ap=Gear_AP, kings=Kings, bom=BoM, battle_shout=Battle_Shout, divine_strength=Divine_Strength,
-                  bonus_sp=Bonus_SP, sheath=Sheath, weapon_enchant_bonus=Weapon_Enchant_Bonus, weapon_min=Weapon_Min,
-                  weapon_max=Weapon_Max, extra_crit=Bonus_Crit, precision=Precision, boss_dodge=Boss_Dodge,
-                  boss_parry=Boss_Parry, miss_chance=Base_Miss, armor_mitigation=Boss_Armor_Mitigation, ds=Divine_Storm,
-                  name=Build_Name, spell_crit=Spell_Crit, ret_aura=Ret_Aura, boss_speed=Enemy_Speed, wf=WF,
-                  deflection=Deflection, base_parry=Base_Parry, exorcism=Exorcism, shock=Holy_Shock,
-                  crusader_judge=Judge_Of_Crusader, weapon_sp=Weapon_SP, weapon_str=Weapon_Strength,
-                  benediction=Benediction, arcane=Arcane_Intellect, gear_int=Gear_Intellect, bow=BoW,
-                  guarded=Guarded_By_Light, wis_judge=Judge_Of_Wisdom, holy_power=Holy_Power, imp_bow=Improved_BoW,
-                  divine_favor=Divine_Favor, illumination=Illumination, divine_int=Divine_Intellect,
-                  handedness=Handedness, imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura,
-                  two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance)
+                  two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
+                  extra_wep_skill=Bonus_Skill)
