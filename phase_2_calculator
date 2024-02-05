@@ -25,7 +25,7 @@ Vengeance = False
 # abilities toggle
 Consecration = True
 Seal = "sor"
-Divine_Storm = True
+Divine_Storm = False
 Exorcism = True
 Holy_Shock = False
 Divine_Favor = False
@@ -53,7 +53,7 @@ Racial_Bonus = True
 # raid buffs
 Kings = True
 
-BoM = True
+BoM = False
 Horn = True
 
 WB = True
@@ -64,6 +64,7 @@ Arcane_Intellect = True
 BoW = True
 Judge_Of_Wisdom = True
 MoW = True
+LotP = True
 
 # stat values
 Gear_Strength = 200  # class base stat included but before talent, buff, weapon stats
@@ -133,6 +134,18 @@ def down_ranked(lower_rank_dps, higher_rank_dps):
         return True
     else:
         return False
+
+
+def toggle_checker(bom, horn, aow, guarded, infusion, sheath):
+    if bom and horn:
+        print("Cant have both BOM and Horn buff.")
+        exit()
+    if aow and guarded:
+        print("Can't have AoW and Guarded runes at once.")
+        exit()
+    if infusion and sheath:
+        print("Can't have Infusion and Sheath at once")
+        exit()
 
 
 # art of war sim
@@ -361,13 +374,14 @@ def evasion_coefficient(enemy_dodge_chance, enemy_parry_chance, miss_chance):
     return dodge_coefficient * parry_coefficient * miss_coefficient
 
 
-def melee_crit_chance(extra_crit, extra_agi, conviction_points, kings):
+def melee_crit_chance(extra_crit, extra_agi, conviction_points, kings, leader):
     base_crit = Base_Melee_Crit
     base_agi = Base_Agi
     agi = (base_agi + extra_agi) * mult_toggler(kings, 1.1)
     crit_per_agi = Melee_Crit_Per_Agi
     crit_from_agi = crit_per_agi * agi
-    output = crit_from_agi + base_crit + extra_crit + conviction_points / 100
+    extra_crit = extra_crit + conviction_points/100 + add_toggler(leader, 3/100)
+    output = crit_from_agi + base_crit + extra_crit
     return output
 
 
@@ -474,7 +488,11 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
                       deflection, base_parry, exorcism, shock, crusader_judge, weapon_sp, weapon_str, benediction,
                       guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor,
                       divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance, racial,
-                      extra_wep_skill, extra_hit, horn, mark, infusion):
+                      extra_wep_skill, extra_hit, horn, mark, infusion, leader):
+
+    # debugger
+    toggle_checker(bom=bom, horn=horn, aow=art_of_war, guarded=guarded, infusion=infusion, sheath=sheath)
+
     # stats
     skill_bonus = add_toggler(racial, 5) + extra_wep_skill
 
@@ -483,7 +501,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 
     extra_agi = gear_agi + add_toggler(horn, 40) + add_toggler(mark, 8)
     melee_crit = melee_crit_chance(extra_crit=extra_crit, extra_agi=extra_agi, conviction_points=conviction_points,
-                                   kings=kings)
+                                   kings=kings, leader=leader)
 
     melee_crit_c = crit_coefficient(crit_chance=melee_crit)
     spell_crit = spell_crit + add_toggler(holy_power, 5 / 100) + add_toggler(wb, 3 / 100)
@@ -685,11 +703,11 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     infusion_mana = holy_shock_mana
     infusion_pps = ((cd_ratio - 1) * spell_crit_c + 1) / divine_favor_cd
     infusion_mps = infusion_mana * infusion_pps
-    
+
     mana_gain_per_sec = bow_mps + guarded_mps + wis_judge_mps + infusion_mps
 
     mana_net_flow = mana_gain_per_sec - mana_loss_per_sec
-    
+
     if mana_net_flow < 0:
         time_until_oom = round(-mana / mana_net_flow, ndigits=1)
     else:
@@ -750,7 +768,7 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   divine_favor=Divine_Favor, divine_int=Divine_Intellect,
                   handedness=Handedness, imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura,
                   two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
-                  extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn, mark=MoW, infusion=Infusion)
+                  extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn, mark=MoW, infusion=Infusion, leader=LotP)
 
 # build 2
 # build name
@@ -818,4 +836,4 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   divine_favor=Divine_Favor, divine_int=Divine_Intellect, handedness=Handedness,
                   imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura, two_hand_spec=Two_Hand_Spec,
                   sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus, extra_wep_skill=Bonus_Skill,
-                  extra_hit=Bonus_Hit, horn=Horn, mark=MoW, infusion=Infusion)
+                  extra_hit=Bonus_Hit, horn=Horn, mark=MoW, infusion=Infusion, leader=LotP)
