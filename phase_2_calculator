@@ -569,11 +569,14 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
         if cons:
             print(f"Consecration: {round(cons_dps, ndigits=1)}")
         if seal == "sor":
-            print(f"Seal: {round(sor_dps, ndigits=1)}")
+            if sor_three_dps > sor_five_dps:
+                print(f"SoR 3: {round(sor_dps, ndigits=1)}")
+            else:
+                print(f"SoR 5: {round(sor_dps, ndigits=1)}")
         if seal == "soc":
-            print(f"Seal: {round(soc_dps, ndigits=1)}")
+            print(f"SoC: {round(soc_dps, ndigits=1)}")
         if seal == "som":
-            print(f"Seal: {round(som_dps, ndigits=1)}")
+            print(f"SoM: {round(som_dps, ndigits=1)}")
         if shock:
             print(f"Holy Shock: {round(holy_shock_dps, ndigits=1)}")
         if exorcism:
