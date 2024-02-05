@@ -25,7 +25,7 @@ Vengeance = False
 # abilities toggle
 Consecration = True
 Seal = "sor"
-Divine_Storm = False
+Divine_Storm = True
 Exorcism = True
 Sheath = True
 Holy_Shock = False
@@ -61,7 +61,7 @@ Judge_Of_Crusader = True
 Arcane_Intellect = True
 BoW = True
 Judge_Of_Wisdom = True
-
+MoW = True
 
 # stat values
 Gear_Strength = 200  # class base stat included but before talent, buff, weapon stats
@@ -91,8 +91,8 @@ Base_Mana = 987
 Base_Intellect = 49
 Boss_Level = 42
 Player_Level = 40
-Melee_Crit_Per_Agi = 0.0675/100
-Base_Melee_Crit = 0.665/100
+Melee_Crit_Per_Agi = 0.0675 / 100
+Base_Melee_Crit = 0.665 / 100
 Base_Agi = 46
 
 
@@ -279,19 +279,19 @@ def melee_miss_prob(boss_level, player_level, skill_bonus, precision, extra_hit)
         print("Wrong level values.")
         exit()
     if delta >= 11:
-        return (5 + 0.2 * delta) / 100 - add_toggler(precision, 3/100) - extra_hit
+        return (5 + 0.2 * delta) / 100 - add_toggler(precision, 3 / 100) - extra_hit
     elif 10 >= delta:
-        return (5 + 0.1 * delta) / 100 - add_toggler(precision, 3/100) - extra_hit
+        return (5 + 0.1 * delta) / 100 - add_toggler(precision, 3 / 100) - extra_hit
 
 
 def spell_miss_prob(boss_level, player_level, extra_hit):
     level_delta = boss_level - player_level
     if level_delta == 1:
-        base_miss = 5/100
+        base_miss = 5 / 100
     elif level_delta == 2:
-        base_miss = 6/100
+        base_miss = 6 / 100
     elif level_delta == 3:
-        base_miss = 17/100
+        base_miss = 17 / 100
     else:
         print("Unexpected level delta.")
         exit()
@@ -299,10 +299,10 @@ def spell_miss_prob(boss_level, player_level, extra_hit):
     return output
 
 
-def max_mana(gear_int, arcane, divine_int, kings):
+def max_mana(gear_int, arcane, divine_int, kings, mark):
     base_mana = Base_Mana
     class_int = Base_Intellect
-    extra_int = gear_int + add_toggler(arcane, 15)
+    extra_int = gear_int + add_toggler(arcane, 15) + add_toggler(mark, 8)
     intellect = (class_int + extra_int) * mult_toggler(divine_int, 1.1) * mult_toggler(kings, 1.1)
     mana = base_mana + 20 + (intellect - 20) * 15
     return mana
@@ -317,14 +317,27 @@ def attack_power(strength, gear_ap, bom, battle_shout):
     return output
 
 
-def spell_power(ap, bonus_sp, sheath, weapon_sp):
-    output = bonus_sp + add_toggler(sheath, 0.3 * ap) + weapon_sp
+def spell_power(ap, bonus_sp, sheath, weapon_sp, wb):
+    output = bonus_sp + add_toggler(sheath, 0.3 * ap) + weapon_sp + add_toggler(wb, 42)
     return output
 
 
 def base_melee_hit(ap, weapon_max, weapon_min, weapon_speed, wep_enchant_bonus):
     base = (weapon_max + weapon_min) / 2
     scale = ap * weapon_speed / 14
+    return base + scale + wep_enchant_bonus
+
+
+def special_melee_hit(ap, weapon_max, weapon_min, wep_enchant_bonus, handedness):
+    base = (weapon_max + weapon_min) / 2
+    if handedness == 2:
+        coefficient = 3.3
+    elif handedness == 1:
+        coefficient = 2.4
+    else:
+        print("Unexpected handedness.")
+        exit()
+    scale = ap * coefficient / 14
     return base + scale + wep_enchant_bonus
 
 
@@ -345,7 +358,7 @@ def melee_crit_chance(extra_crit, extra_agi, conviction_points, kings):
     agi = (base_agi + extra_agi) * mult_toggler(kings, 1.1)
     crit_per_agi = Melee_Crit_Per_Agi
     crit_from_agi = crit_per_agi * agi
-    output = crit_from_agi + base_crit + extra_crit + conviction_points/100
+    output = crit_from_agi + base_crit + extra_crit + conviction_points / 100
     return output
 
 
@@ -452,26 +465,28 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
                       deflection, base_parry, exorcism, shock, crusader_judge, weapon_sp, weapon_str, benediction,
                       guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor,
                       divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance, racial,
-                      extra_wep_skill, extra_hit, horn):
+                      extra_wep_skill, extra_hit, horn, mark):
     # stats
     skill_bonus = add_toggler(racial, 5) + extra_wep_skill
 
-    strength = ((base_strength + weapon_str + add_toggler(horn, 40)) * mult_toggler(kings, 1.1)
-                * mult_toggler(divine_strength, 1.1))
+    strength = ((base_strength + weapon_str + add_toggler(horn, 40) + add_toggler(mark, 8)) *
+                mult_toggler(kings, 1.1) * mult_toggler(divine_strength, 1.1))
 
-    melee_crit = melee_crit_chance(extra_crit=extra_crit, extra_agi=gear_agi+add_toggler(horn, 40),
-                                   conviction_points=conviction_points, kings=kings)
+    extra_agi = gear_agi + add_toggler(horn, 40) + add_toggler(mark, 8)
+    melee_crit = melee_crit_chance(extra_crit=extra_crit, extra_agi=extra_agi, conviction_points=conviction_points,
+                                   kings=kings)
 
     melee_crit_c = crit_coefficient(crit_chance=melee_crit)
-    spell_crit_c = 1 + 0.5 * (spell_crit + add_toggler(holy_power, 5 / 100))
+    spell_crit = spell_crit + add_toggler(holy_power, 5 / 100) + add_toggler(wb, 3 / 100)
+    spell_crit_c = 1 + 0.5 * spell_crit
 
     ap = attack_power(strength=strength, gear_ap=gear_ap, bom=bom, battle_shout=battle_shout)
 
     holy_sp = add_toggler(crusader_judge, 80 * mult_toggler(imp_crusader, 1.15))
-    neutral_sp = spell_power(ap=ap, bonus_sp=bonus_sp, sheath=sheath, weapon_sp=weapon_sp)
+    neutral_sp = spell_power(ap=ap, bonus_sp=bonus_sp, sheath=sheath, weapon_sp=weapon_sp, wb=wb)
     sp = neutral_sp + holy_sp
 
-    mana = max_mana(gear_int=gear_int, arcane=arcane, divine_int=divine_int, kings=kings)
+    mana = max_mana(gear_int=gear_int, arcane=arcane, divine_int=divine_int, kings=kings, mark=mark)
     base_mana = Base_Mana
 
     # cds
@@ -541,6 +556,9 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     base_melee = base_melee_hit(ap=ap, weapon_min=weapon_min, weapon_max=weapon_max, weapon_speed=weapon_speed,
                                 wep_enchant_bonus=weapon_enchant_bonus)
 
+    special_melee = special_melee_hit(ap=ap, weapon_max=weapon_max, weapon_min=weapon_min,
+                                      wep_enchant_bonus=weapon_enchant_bonus, handedness=handedness)
+
     melee = base_melee * evasion_c * armor_c * glance_c * melee_crit_c * two_hand_spec_c * vengeance_c
 
     wf_hit = melee + 0.2 * ap * weapon_speed / 14 * evasion_c * melee_crit_c * glance_c * two_hand_spec_c * vengeance_c
@@ -556,7 +574,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     holy_shock_damage = holy_shock(sp) * spell_miss_c * spell_crit_c
     holy_shock_dps_without_df = holy_shock_damage / holy_shock_cd
     cd_ratio = divine_favor_cd / holy_shock_cd
-    holy_shock_dps_with_df = ((cd_ratio-1) * holy_shock_damage + 1.5 * holy_shock(sp) * spell_miss_c) / divine_favor_cd
+    holy_shock_dps_with_df = ((cd_ratio - 1) * holy_shock_damage + 1.5 * holy_shock(
+        sp) * spell_miss_c) / divine_favor_cd
     if divine_favor:
         holy_shock_dps = holy_shock_dps_with_df * mult_toggler(not shock, 0) * sanctity_c * vengeance_c
     else:
@@ -586,7 +605,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     som_dps = (som_seal_dmg * (parry_hit_per_sec + 1 / melee_cd + wf_pps)
                + som_judge_dmg / judge_cd) * seal_enabler("som", seal) * sanctity_c * vengeance_c
 
-    divine_storm_dmg = divine_storm(melee=base_melee) * evasion_c * armor_c * melee_crit_c
+    divine_storm_dmg = divine_storm(melee=special_melee) * evasion_c * armor_c * melee_crit_c
     divine_storm_dps = divine_storm_dmg / divine_storm_cd * mult_toggler(not ds, 0) * two_hand_spec_c * vengeance_c
 
     ret_aura_damage = 12 * mult_toggler(imp_ret, 1.5)
@@ -596,7 +615,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     non_holy_dps = divine_storm_dps + melee_dps
 
     # heal
-    ds_heal = divine_storm_heal(melee=base_melee)
+    ds_heal = divine_storm_heal(melee=special_melee)
     ds_hps = ds_heal / divine_storm_cd
 
     # mana expenditure
@@ -674,7 +693,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     print(f"{round(holy_dps / (non_holy_dps + holy_dps) * 100, ndigits=1)}% holy damage")
     print(f"Mana loss per sec: {-round(mana_net_flow, ndigits=1)}")
     print(f"Time until oom: {time_until_oom}")
-    print(f"Melee crit chance: {round(melee_crit*100, ndigits=1)}%")
+    print(f"Melee crit chance: {round(melee_crit * 100, ndigits=1)}%")
     print()
     if Extended_Details:
         print("DPS Values")
@@ -716,7 +735,7 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   divine_favor=Divine_Favor, divine_int=Divine_Intellect,
                   handedness=Handedness, imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura,
                   two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
-                  extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn)
+                  extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn, mark=MoW)
 
 # build 2
 # build name
@@ -783,4 +802,4 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   divine_favor=Divine_Favor, divine_int=Divine_Intellect, handedness=Handedness,
                   imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura, two_hand_spec=Two_Hand_Spec,
                   sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus, extra_wep_skill=Bonus_Skill,
-                  extra_hit=Bonus_Hit, horn=Horn)
+                  extra_hit=Bonus_Hit, horn=Horn, mark=MoW)
