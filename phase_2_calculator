@@ -29,12 +29,10 @@ Divine_Storm = False
 Exorcism = True
 Holy_Shock = False
 Divine_Favor = False
+Ret_Aura = True
 
 Sheath = True
 Infusion = False
-
-Ret_Aura = True
-Sanctity_Aura = False
 
 Guarded_By_Light = False
 Art_Of_War = True
@@ -56,6 +54,7 @@ Kings = True
 BoM = False
 Horn = True
 
+Sanctity_Aura = True
 WB = True
 Battle_Shout = True
 WF = True
@@ -67,8 +66,8 @@ MoW = True
 LotP = True
 
 # stat values
-Gear_Strength = 200  # class base stat included but before talent, buff, weapon stats
-Gear_Agi = 0
+Gear_Strength = 200  # before talent, buff, weapon stats
+Gear_Agi = 0  # before buff, weapon stats
 Gear_AP = 0
 Bonus_SP = 0
 Bonus_Crit = 0  # as decimal
@@ -91,6 +90,7 @@ Extended_Details = True
 
 # statics at 40
 Base_Mana = 987
+Base_Strength = 70
 Base_Intellect = 49
 Boss_Level = 42
 Player_Level = 40
@@ -482,7 +482,7 @@ def divine_storm_heal(melee):
 
 # threat calculator
 def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_rf, imp_judge, art_of_war,
-                      conviction_points, cons, seal, base_strength, gear_ap, kings, bom, battle_shout, divine_strength,
+                      conviction_points, cons, seal, gear_strength, gear_ap, kings, bom, battle_shout, divine_strength,
                       bonus_sp, sheath, weapon_enchant_bonus, weapon_min, weapon_max, extra_crit, precision, boss_dodge,
                       boss_parry, armor_mitigation, ds, name, spell_crit, ret_aura, boss_speed, wf,
                       deflection, base_parry, exorcism, shock, crusader_judge, weapon_sp, weapon_str, benediction,
@@ -496,7 +496,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     # stats
     skill_bonus = add_toggler(racial, 5) + extra_wep_skill
 
-    strength = ((base_strength + weapon_str + add_toggler(horn, 40) + add_toggler(mark, 8)) *
+    strength = ((Base_Strength + gear_strength + weapon_str + add_toggler(horn, 40) + add_toggler(mark, 8)) *
                 mult_toggler(kings, 1.1) * mult_toggler(divine_strength, 1.1))
 
     extra_agi = gear_agi + add_toggler(horn, 40) + add_toggler(mark, 8)
@@ -755,7 +755,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 # execution
 threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=AoW_Judge_Proc, wb=WB,
                   imp_sor=Improved_SoR, imp_rf=Improved_RF, imp_judge=Improved_Judge, art_of_war=Art_Of_War,
-                  conviction_points=Conviction_Points, cons=Consecration, seal=Seal, base_strength=Gear_Strength,
+                  conviction_points=Conviction_Points, cons=Consecration, seal=Seal, gear_strength=Gear_Strength,
                   gear_ap=Gear_AP, kings=Kings, bom=BoM, battle_shout=Battle_Shout, divine_strength=Divine_Strength,
                   bonus_sp=Bonus_SP, sheath=Sheath, weapon_enchant_bonus=Weapon_Enchant_Bonus, weapon_min=Weapon_Min,
                   weapon_max=Weapon_Max, extra_crit=Bonus_Crit, precision=Precision, boss_dodge=Boss_Dodge,
@@ -823,7 +823,7 @@ Racial_Bonus = True
 
 threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=AoW_Judge_Proc, wb=WB,
                   imp_sor=Improved_SoR, imp_rf=Improved_RF, imp_judge=Improved_Judge, art_of_war=Art_Of_War,
-                  conviction_points=Conviction_Points, cons=Consecration, seal=Seal, base_strength=Gear_Strength,
+                  conviction_points=Conviction_Points, cons=Consecration, seal=Seal, gear_strength=Gear_Strength,
                   gear_ap=Gear_AP, kings=Kings, bom=BoM, battle_shout=Battle_Shout, divine_strength=Divine_Strength,
                   bonus_sp=Bonus_SP, sheath=Sheath, weapon_enchant_bonus=Weapon_Enchant_Bonus, weapon_min=Weapon_Min,
                   weapon_max=Weapon_Max, extra_crit=Bonus_Crit, precision=Precision, boss_dodge=Boss_Dodge,
