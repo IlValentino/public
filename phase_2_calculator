@@ -16,8 +16,12 @@ Improved_RF = True
 # ret
 Conviction_Points = 0
 Improved_Judge = True
+Improved_Crusader = False
 Deflection = False
 Benediction = True
+Improved_Ret_Aura = False
+Two_Hand_Spec = False
+Vengeance = False
 
 # abilities toggle
 Consecration = True
@@ -25,7 +29,9 @@ Seal = "sor"
 Divine_Storm = True
 Exorcism = True
 Sheath = True
+
 Ret_Aura = True
+Sanctity_Aura = False
 
 Guarded_By_Light = False
 Art_Of_War = True
@@ -41,6 +47,7 @@ Weapon_Enchant_Bonus = 10
 
 Weapon_Strength = 3
 Weapon_SP = 0
+Handedness = 1  # 1 or 2
 
 # raid buffs
 Kings = True
@@ -251,15 +258,24 @@ def holy_threat_coefficient(imp_rf):
 
 
 # seals
-def sor_seal_three(speed, sp, imp_sor):
+def sor_seal_three(speed, sp, imp_sor, handedness):
+    if handedness == 2:
+        print("base sor dmg inaccurate")
+
     base = 5 * speed - 1
     scale = 0.18 * sp
     return base * mult_toggler(imp_sor, 1.15) + scale
 
 
-def sor_seal_five(speed, sp, imp_sor):
+def sor_seal_five(speed, sp, imp_sor, handedness):
+    if handedness == 2:
+        print("base sor dmg inaccurate")
+
     base = 10 * speed - 1.5
-    scale = 0.1 * sp
+    if handedness == 1:
+        scale = 0.1 * sp
+    else:
+        scale = 1.2 * sp
     return base * mult_toggler(imp_sor, 1.15) + scale
 
 
@@ -332,7 +348,7 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
                       boss_parry, miss_chance, armor_mitigation, ds, name, spell_crit, ret_aura, boss_speed, wf,
                       deflection, base_parry, exorcism, shock, crusader_judge, weapon_sp, weapon_str, benediction,
                       guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor, illumination,
-                      divine_int):
+                      divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance):
 
     # stats
     strength = (base_strength + weapon_str) * mult_toggler(kings, 1.1) * mult_toggler(divine_strength, 1.1)
@@ -345,7 +361,7 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
 
     ap = attack_power(strength=strength, gear_ap=gear_ap, bom=bom, battle_shout=battle_shout)
 
-    holy_sp = add_toggler(crusader_judge, 80)
+    holy_sp = add_toggler(crusader_judge, 80 * mult_toggler(imp_crusader, 1.15))
     neutral_sp = spell_power(ap=ap, bonus_sp=bonus_sp, sheath=sheath, weapon_sp=weapon_sp)
     sp = neutral_sp + holy_sp
 
@@ -382,64 +398,83 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
     reduction_coefficient = 1 - glance_reduction
     glance_c = glance_chance * reduction_coefficient + (1 - glance_chance)
 
+    # procs per per sec
+    wf_proc_chance = 0.2
+    wf_pps = wf_proc_chance * 1 / melee_cd
+
+    extra_hit_per_parry = 0.24
+    parry_per_sec = (base_parry + add_toggler(deflection, 5 / 100)) / boss_speed
+    parry_hit_per_sec = extra_hit_per_parry * parry_per_sec
+
+    soc_p = 7 / 60 * weapon_speed
+    soc_pps = 7 / 60 + (1 - soc_p) * wf_proc_chance * soc_p / melee_cd * mult_toggler(not wf, 0)
+
+    vengeance_pps = ((1 / melee_cd + add_toggler(wf, 1 / wf_pps) + 1 / parry_hit_per_sec +
+                     add_toggler(seal == "soc", 1/soc_pps) + add_toggler(seal == "som", 1/melee_cd) +
+                      add_toggler(ds, 1/divine_storm_cd)) * melee_crit_c +
+                     (1/judge_cd + add_toggler(exorcism, 1/exorcism_cd) + add_toggler(shock, 1/holy_shock_cd)) *
+                     spell_crit_c)
+
     # damage
+    sanctity_c = mult_toggler(sanctity_aura, 1.1)
+    two_hand_spec_c = mult_toggler(handedness == 2 and two_hand_spec, 1.06)
+    if vengeance_pps >= 1/8:
+        vengeance_c = 1.15 * mult_toggler(not vengeance, 0)
+    else:
+        vengeance_c = (1.2 * vengeance_pps + 1) * mult_toggler(not vengeance, 0)
+
     base_melee = base_melee_hit(ap=ap, weapon_min=weapon_min, weapon_max=weapon_max, weapon_speed=weapon_speed,
                                 wep_enchant_bonus=weapon_enchant_bonus)
 
-    melee = base_melee * evasion_c * armor_c * glance_c * melee_crit_c
+    melee = base_melee * evasion_c * armor_c * glance_c * melee_crit_c * two_hand_spec_c * vengeance_c
 
-    wf_hit = melee + 0.2 * ap * weapon_speed / 14 * evasion_c * melee_crit_c * glance_c
-    wf_proc_chance = 0.2
-    wf_pps = wf_proc_chance * (1/melee_cd + 1/judge_cd * mult_toggler(seal == "sor", 0)) * mult_toggler(not wf, 0)
-    wf_dps = wf_pps * wf_hit
-
-    extra_hit_per_parry = 0.24
-    parry_per_sec = (base_parry + add_toggler(deflection, 5/100)) / boss_speed
-    parry_hit_per_sec = extra_hit_per_parry * parry_per_sec
+    wf_hit = melee + 0.2 * ap * weapon_speed / 14 * evasion_c * melee_crit_c * glance_c * two_hand_spec_c * vengeance_c
+    wf_dps = wf_pps * wf_hit * mult_toggler(not wf, 0)
 
     melee_dps = melee / melee_cd + melee * parry_hit_per_sec + wf_dps
 
-    cons_dps = mult_toggler(not cons, 0) * consecration(sp) / cons_cd * spell_miss_c
+    cons_dps = mult_toggler(not cons, 0) * consecration(sp) / cons_cd * spell_miss_c * sanctity_c * vengeance_c
 
-    exorcism_dps = mult_toggler(not exorcism, 0) * exorcism_dmg(sp) / exorcism_cd * spell_crit_c * spell_miss_c
+    exorcism_dps = (mult_toggler(not exorcism, 0) * exorcism_dmg(sp) / exorcism_cd * spell_crit_c * spell_miss_c
+                    * sanctity_c * vengeance_c)
 
     holy_shock_damage = holy_shock(sp) * spell_miss_c * spell_crit_c
     holy_shock_dps_without_df = holy_shock_damage / holy_shock_cd
     holy_shock_dps_with_df = (3 * holy_shock_damage + 1.5 * holy_shock(sp) * spell_miss_c)/divine_favor_cd
     if divine_favor:
-        holy_shock_dps = holy_shock_dps_with_df * mult_toggler(not shock, 0)
+        holy_shock_dps = holy_shock_dps_with_df * mult_toggler(not shock, 0) * sanctity_c * vengeance_c
     else:
-        holy_shock_dps = holy_shock_dps_without_df * mult_toggler(not shock, 0)
+        holy_shock_dps = holy_shock_dps_without_df * mult_toggler(not shock, 0) * sanctity_c * vengeance_c
 
-    sor_seal_three_dmg = sor_seal_three(speed=weapon_speed, sp=sp, imp_sor=imp_sor) * evasion_c
+    sor_seal_three_dmg = sor_seal_three(speed=weapon_speed, sp=sp, imp_sor=imp_sor, handedness=handedness) * evasion_c
     sor_judge_three_dmg = sor_judge_three(sp=sp, imp_sor=imp_sor) * spell_crit_c * spell_miss_c
 
-    sor_seal_five_dmg = sor_seal_five(speed=weapon_speed, sp=sp, imp_sor=imp_sor) * evasion_c
+    sor_seal_five_dmg = sor_seal_five(speed=weapon_speed, sp=sp, imp_sor=imp_sor, handedness=handedness) * evasion_c
     sor_judge_five_dmg = sor_judge_five(sp=sp, imp_sor=imp_sor) * spell_crit_c * spell_miss_c
 
     sor_three_dps = sor_judge_three_dmg / judge_cd + sor_seal_three_dmg*(1/melee_cd+parry_hit_per_sec+wf_pps)
     sor_five_dps = sor_judge_five_dmg / judge_cd + sor_seal_five_dmg * (1/melee_cd+parry_hit_per_sec+wf_pps)
 
-    sor_dps = max(sor_three_dps, sor_five_dps) * seal_enabler("sor", seal)
+    sor_dps = max(sor_three_dps, sor_five_dps) * seal_enabler("sor", seal) * sanctity_c * vengeance_c
 
-    soc_seal_dmg = soc_seal(melee=base_melee, neutral_sp=neutral_sp, holy_sp=holy_sp) * evasion_c * melee_crit_c
+    soc_seal_dmg = (soc_seal(melee=base_melee, neutral_sp=neutral_sp, holy_sp=holy_sp) * evasion_c * melee_crit_c *
+                    two_hand_spec_c)
     soc_judge_dmg = soc_judge_three(sp=sp, in_cap=False) * melee_crit_c * spell_miss_c
 
-    soc_p = 7/60 * weapon_speed
-    soc_pps = 7 / 60 + (1-soc_p)*0.2*soc_p/melee_cd
-    soc_dps = (soc_seal_dmg * soc_pps + soc_judge_dmg / judge_cd) * seal_enabler("soc", seal)
+    soc_dps = (soc_seal_dmg * soc_pps + soc_judge_dmg / judge_cd) * seal_enabler("soc", seal * sanctity_c * 
+                                                                                 vengeance_c)
 
-    som_seal_dmg = som_seal(melee=base_melee) * evasion_c * melee_crit_c
+    som_seal_dmg = som_seal(melee=base_melee) * evasion_c * melee_crit_c * two_hand_spec_c
     som_judge_dmg = som_judge(melee=base_melee) * melee_crit_c * spell_miss_c
 
     som_dps = (som_seal_dmg*(parry_hit_per_sec+1/melee_cd+wf_pps)
-               + som_judge_dmg / judge_cd) * seal_enabler("som", seal)
+               + som_judge_dmg / judge_cd) * seal_enabler("som", seal * sanctity_c * vengeance_c)
 
     divine_storm_dmg = divine_storm(melee=base_melee) * evasion_c * armor_c * melee_crit_c
-    divine_storm_dps = divine_storm_dmg / divine_storm_cd * mult_toggler(not ds, 0)
+    divine_storm_dps = divine_storm_dmg / divine_storm_cd * mult_toggler(not ds, 0) * two_hand_spec_c * vengeance_c
 
-    ret_aura_damage = 12
-    ret_aura_dps = ret_aura_damage / boss_speed * mult_toggler(not ret_aura, 0)
+    ret_aura_damage = 12 * mult_toggler(imp_ret, 1.5)
+    ret_aura_dps = ret_aura_damage / boss_speed * mult_toggler(not ret_aura, 0) * sanctity_c * vengeance_c
 
     holy_dps = exorcism_dps + cons_dps + som_dps + soc_dps + sor_dps + ret_aura_dps + holy_shock_dps
     non_holy_dps = divine_storm_dps + melee_dps
@@ -562,60 +597,6 @@ threat_calculator(weapon_speed=Weapon_Speed, base_melee_crit=Melee_Crit, aow_jud
                   crusader_judge=Judge_Of_Crusader, weapon_sp=Weapon_SP, weapon_str=Weapon_Strength,
                   benediction=Benediction, arcane=Arcane_Intellect, gear_int=Gear_Intellect, bow=BoW,
                   guarded=Guarded_By_Light, wis_judge=Judge_Of_Wisdom, holy_power=Holy_Power, imp_bow=Improved_BoW,
-                  divine_favor=Divine_Favor, illumination=Illumination, divine_int=Divine_Intellect)
-
-# talent toggles
-Build_Name = "Shockadin with BFD hammer"
-
-# holy
-Improved_SoR = True
-Improved_BoW = True
-Divine_Strength = True
-Divine_Intellect = True
-Holy_Power = True
-Illumination = True
-# prot
-Precision = False
-Improved_RF = False
-# ret
-Conviction_Points = 0
-Improved_Judge = False
-Deflection = False
-Benediction = False
-
-# abilities toggle
-Consecration = True
-Seal = "sor"
-Divine_Storm = False
-Exorcism = True
-Sheath = True
-Ret_Aura = True
-
-Guarded_By_Light = False
-Art_Of_War = True
-
-Holy_Shock = True
-Divine_Favor = True
-
-# weapon values
-Weapon_Min = 17
-Weapon_Max = 32
-Weapon_Speed = 1.3
-Weapon_Enchant_Bonus = 10
-
-Weapon_Strength = 3
-Weapon_SP = 0
-
-threat_calculator(weapon_speed=Weapon_Speed, base_melee_crit=Melee_Crit, aow_judge_proc=AoW_Judge_Proc, wb=WB,
-                  imp_sor=Improved_SoR, imp_rf=Improved_RF, imp_judge=Improved_Judge, art_of_war=Art_Of_War,
-                  conviction_points=Conviction_Points, cons=Consecration, seal=Seal, base_strength=Gear_Strength,
-                  gear_ap=Gear_AP, kings=Kings, bom=BoM, battle_shout=Battle_Shout, divine_strength=Divine_Strength,
-                  bonus_sp=Bonus_SP, sheath=Sheath, weapon_enchant_bonus=Weapon_Enchant_Bonus, weapon_min=Weapon_Min,
-                  weapon_max=Weapon_Max, extra_crit=Bonus_Crit, precision=Precision, boss_dodge=Boss_Dodge,
-                  boss_parry=Boss_Parry, miss_chance=Base_Miss, armor_mitigation=Boss_Armor_Mitigation, ds=Divine_Storm,
-                  name=Build_Name, spell_crit=Spell_Crit, ret_aura=Ret_Aura, boss_speed=Enemy_Speed, wf=WF,
-                  deflection=Deflection, base_parry=Base_Parry, exorcism=Exorcism, shock=Holy_Shock,
-                  crusader_judge=Judge_Of_Crusader, weapon_sp=Weapon_SP, weapon_str=Weapon_Strength,
-                  benediction=Benediction, arcane=Arcane_Intellect, gear_int=Gear_Intellect, bow=BoW,
-                  guarded=Guarded_By_Light, wis_judge=Judge_Of_Wisdom, holy_power=Holy_Power, imp_bow=Improved_BoW,
-                  divine_favor=Divine_Favor, illumination=Illumination, divine_int=Divine_Intellect)
+                  divine_favor=Divine_Favor, illumination=Illumination, divine_int=Divine_Intellect,
+                  handedness=Handedness, imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura,
+                  two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance)
