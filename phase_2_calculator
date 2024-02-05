@@ -259,19 +259,19 @@ def holy_threat_coefficient(imp_rf):
 
 # seals
 def sor_seal_three(speed, sp, imp_sor, handedness):
-    if handedness == 2:
-        print("base sor dmg inaccurate")
-
-    base = 5 * speed - 1
+    if handedness == 1:
+        base = 5 * speed - 1
+    else:
+        base = 6.25 * speed - 1.12
     scale = 0.18 * sp
     return base * mult_toggler(imp_sor, 1.15) + scale
 
 
 def sor_seal_five(speed, sp, imp_sor, handedness):
-    if handedness == 2:
-        print("base sor dmg inaccurate")
-
-    base = 10 * speed - 1.5
+    if handedness == 1:
+        base = 10 * speed - 1.5
+    else:
+        base = 11.25 * speed + 1.3
     if handedness == 1:
         scale = 0.1 * sp
     else:
@@ -426,7 +426,7 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
     base_melee = base_melee_hit(ap=ap, weapon_min=weapon_min, weapon_max=weapon_max, weapon_speed=weapon_speed,
                                 wep_enchant_bonus=weapon_enchant_bonus)
 
-    melee = base_melee * evasion_c * armor_c * glance_c * melee_crit_c * two_hand_spec_c * vengeance_c 
+    melee = base_melee * evasion_c * armor_c * glance_c * melee_crit_c * two_hand_spec_c * vengeance_c
 
     wf_hit = melee + 0.2 * ap * weapon_speed / 14 * evasion_c * melee_crit_c * glance_c * two_hand_spec_c * vengeance_c
     wf_dps = wf_pps * wf_hit * mult_toggler(not wf, 0)
@@ -585,6 +585,71 @@ def threat_calculator(weapon_speed, base_melee_crit, aow_judge_proc, wb, imp_sor
 
 
 # execution
+threat_calculator(weapon_speed=Weapon_Speed, base_melee_crit=Melee_Crit, aow_judge_proc=AoW_Judge_Proc, wb=WB,
+                  imp_sor=Improved_SoR, imp_rf=Improved_RF, imp_judge=Improved_Judge, art_of_war=Art_Of_War,
+                  conviction_points=Conviction_Points, cons=Consecration, seal=Seal, base_strength=Gear_Strength,
+                  gear_ap=Gear_AP, kings=Kings, bom=BoM, battle_shout=Battle_Shout, divine_strength=Divine_Strength,
+                  bonus_sp=Bonus_SP, sheath=Sheath, weapon_enchant_bonus=Weapon_Enchant_Bonus, weapon_min=Weapon_Min,
+                  weapon_max=Weapon_Max, extra_crit=Bonus_Crit, precision=Precision, boss_dodge=Boss_Dodge,
+                  boss_parry=Boss_Parry, miss_chance=Base_Miss, armor_mitigation=Boss_Armor_Mitigation, ds=Divine_Storm,
+                  name=Build_Name, spell_crit=Spell_Crit, ret_aura=Ret_Aura, boss_speed=Enemy_Speed, wf=WF,
+                  deflection=Deflection, base_parry=Base_Parry, exorcism=Exorcism, shock=Holy_Shock,
+                  crusader_judge=Judge_Of_Crusader, weapon_sp=Weapon_SP, weapon_str=Weapon_Strength,
+                  benediction=Benediction, arcane=Arcane_Intellect, gear_int=Gear_Intellect, bow=BoW,
+                  guarded=Guarded_By_Light, wis_judge=Judge_Of_Wisdom, holy_power=Holy_Power, imp_bow=Improved_BoW,
+                  divine_favor=Divine_Favor, illumination=Illumination, divine_int=Divine_Intellect,
+                  handedness=Handedness, imp_crusader=Improved_Crusader, imp_ret=Improved_Ret_Aura,
+                  two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance)
+
+# build name
+Build_Name = "Deep Ret with Bonebiter"
+# talent toggles
+# holy
+Improved_SoR = False
+Improved_BoW = False
+Divine_Strength = False
+Divine_Intellect = False
+Holy_Power = False
+Illumination = False
+# prot
+Precision = False
+Improved_RF = False
+# ret
+Conviction_Points = 5
+Improved_Judge = True
+Improved_Crusader = True
+Deflection = True
+Benediction = True
+Improved_Ret_Aura = True
+Two_Hand_Spec = True
+Vengeance = True
+
+# abilities toggle
+Consecration = False
+Seal = "soc"
+Divine_Storm = True
+Exorcism = True
+Sheath = True
+
+Ret_Aura = False
+Sanctity_Aura = True
+
+Guarded_By_Light = False
+Art_Of_War = True
+
+Holy_Shock = False
+Divine_Favor = False
+
+# weapon values
+Weapon_Min = 105
+Weapon_Max = 159
+Weapon_Speed = 3.4
+Weapon_Enchant_Bonus = 10
+
+Weapon_Strength = 20
+Weapon_SP = 0
+Handedness = 2  # 1 or 2
+
 threat_calculator(weapon_speed=Weapon_Speed, base_melee_crit=Melee_Crit, aow_judge_proc=AoW_Judge_Proc, wb=WB,
                   imp_sor=Improved_SoR, imp_rf=Improved_RF, imp_judge=Improved_Judge, art_of_war=Art_Of_War,
                   conviction_points=Conviction_Points, cons=Consecration, seal=Seal, base_strength=Gear_Strength,
