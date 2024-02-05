@@ -71,18 +71,18 @@ Gear_Strength = 200  # class base stat included but before talent, buff, weapon 
 Gear_Agi = 0
 Gear_AP = 0
 Bonus_SP = 0
-Bonus_Crit = 0
+Bonus_Crit = 0  # as decimal
 Bonus_Skill = 0
-Spell_Crit = 6 / 100
-Base_Parry = 5 / 100
+Spell_Crit = 6 / 100  # as decimal
+Base_Parry = 5 / 100  # as decimal
 
-Bonus_Hit = 0
+Bonus_Hit = 0  # as decimal
 Gear_Intellect = 0
 
 # boss values
-Boss_Dodge = 6 / 100
-Boss_Parry = 4 / 100
-Boss_Armor_Mitigation = 6 / 100
+Boss_Dodge = 6 / 100  # as decimal
+Boss_Parry = 4 / 100  # as decimal
+Boss_Armor_Mitigation = 6 / 100  # as decimal
 Enemy_Speed = 2
 
 # calc setting
