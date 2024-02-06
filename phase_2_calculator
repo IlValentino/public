@@ -201,7 +201,7 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
     holy_shock_counter = 0
 
     t = 0
-    target_time = 10 ** 3
+    target_time = 10 ** 5
     while True:
         if not exo_on_cd and not on_gcd and exo_used:
             exo_on_cd = True
