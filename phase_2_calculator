@@ -1,31 +1,30 @@
 import random
 
 # build name
-Build_Name = "Holy Prot with BFD hammer"
+Build_Name = "Deep Ret with Rocket Cleaver"
 # talent toggles
 # holy
 Improved_SoR = False
 Improved_BoW = False
-Divine_Strength = True
-Divine_Intellect = True
+Divine_Strength = False
+Divine_Intellect = False
 Holy_Power = False
 # prot
-Precision = True
-Improved_RF = True
+Precision = False
+Improved_RF = False
 # ret
-Conviction_Points = 0  # 0 to 5
+Conviction_Points = 5  # 0 to 5
 Improved_Judge = True
-Improved_Crusader = False
-Deflection = False
+Deflection = True
 Benediction = True
-Improved_Ret_Aura = False
-Two_Hand_Spec = False
-Vengeance = False
+Improved_Ret_Aura = True
+Two_Hand_Spec = True
+Vengeance = True
 
 # abilities toggle
-Consecration = True
-Seal = "sor"  # sor, soc or som
-Divine_Storm = False
+Consecration = False
+Seal = "soc"  # sor, soc or som
+Divine_Storm = True
 Exorcism = True
 Holy_Shock = False
 Divine_Favor = False
@@ -38,37 +37,43 @@ Guarded_By_Light = False
 Art_Of_War = True
 
 # weapon values
-Weapon_Min = 17
-Weapon_Max = 32
-Weapon_Speed = 1.3
-Weapon_Enchant_Bonus = 10
+Weapon_Min = 117
+Weapon_Max = 175
+Weapon_Speed = 3.6
+Weapon_Enchant_Bonus = 5
 
-Weapon_Strength = 3
+Weapon_Strength = 0
 Weapon_Intellect = 0
 Weapon_Agility = 0
-Weapon_SP = 0
-Handedness = 1  # 1 or 2
+
+Handedness = 2  # 1 or 2
 Racial_Bonus = True
 
 Gnomer_Needle_Proc = False  # activates the proc of the 1h epic
+ACP_ON_USE = False  # activates automatic crowd pummeler cd
 
-# stat values
-Gear_Strength = 200  # before talent, buff, weapon stats
+# non-weapon gear stat values
+Gear_Strength = 0  # before talent, buff, weapon stats
 Gear_Agi = 0  # before buff, weapon stats
-Gear_AP = 0
-Bonus_SP = 0
-Bonus_Crit = 0  # as decimal
-Bonus_Skill = 0
-Spell_Crit = 6 / 100  # as decimal
-Base_Parry = 5 / 100  # as decimal
-
-Bonus_Hit = 0  # as decimal
 Gear_Intellect = 0
 
-Use_Total_Stats = False  # toggle this to use insert total stats (both gear and base at once)
-Total_Int = 0
-Total_Str = 0
-Total_Agi = 0
+# use total value stat input instead (overrides wep+gear stats)
+Use_Total_Stats = True  # toggle this to use insert total stats (both gear and base at once)
+Total_Str = 220
+Total_Agi = 90
+Total_Int = 51
+
+# bonus stats
+Gear_AP = 0
+Bonus_SP = 0
+Bonus_Holy_SP = 24
+Bonus_Crit = 3 / 100  # as decimal
+Bonus_Skill = 0
+Bonus_Hit = 2/100  # as decimal
+
+# values to be estimated
+Spell_Crit = 7.75 / 100  # as decimal
+Base_Parry = 5.28 / 100  # as decimal
 
 # raid buffs
 Kings = True
@@ -81,23 +86,25 @@ WB = True
 Battle_Shout = True
 WF = True
 Judge_Of_Crusader = True
+Improved_Crusader = True
 Arcane_Intellect = True
 BoW = True
 Judge_Of_Wisdom = True
 MoW = True
 LotP = True
 
-# boss values
+# boss values (choose what boss is doing)
 Boss_Dodge = 6 / 100  # as decimal
 Boss_Parry = 4 / 100  # as decimal
 Boss_Armor_Mitigation = 6 / 100  # as decimal
 Enemy_Speed = 2
 
-# calc setting
+# settings
 AoW_Judge_Proc = True
 Extended_Details = True
+Print_Assumptions = True
 
-# statics at 40
+# statics at 40 (should not be changed)
 Base_Mana = 987
 Base_Strength = 70
 Base_Intellect = 49
@@ -354,8 +361,8 @@ def attack_power(strength, gear_ap, bom, battle_shout):
     return output
 
 
-def spell_power(ap, bonus_sp, sheath, weapon_sp, wb):
-    output = bonus_sp + add_toggler(sheath, 0.3 * ap) + weapon_sp + add_toggler(wb, 42)
+def neutral_spell_power(ap, bonus_sp, sheath, wb):
+    output = bonus_sp + add_toggler(sheath, 0.3 * ap) + add_toggler(wb, 42)
     return output
 
 
@@ -498,11 +505,11 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
                       conviction_points, cons, seal, gear_strength, gear_ap, kings, bom, battle_shout, divine_strength,
                       bonus_sp, sheath, weapon_enchant_bonus, weapon_min, weapon_max, extra_crit, precision, boss_dodge,
                       boss_parry, armor_mitigation, ds, name, spell_crit, ret_aura, boss_speed, wf,
-                      deflection, base_parry, exorcism, shock, crusader_judge, weapon_sp, weapon_str, benediction,
+                      deflection, base_parry, exorcism, shock, crusader_judge, bonus_holy_sp, weapon_str, benediction,
                       guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor,
                       divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance, racial,
                       extra_wep_skill, extra_hit, horn, mark, infusion, leader, wep_agi, wep_int, needle, total_agi,
-                      total_str, total_int):
+                      total_str, total_int, acp_cd):
 
     # debugger
     toggle_checker(bom=bom, horn=horn, aow=art_of_war, guarded=guarded, infusion=infusion, sheath=sheath, seal=seal,
@@ -535,8 +542,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 
     ap = attack_power(strength=strength, gear_ap=gear_ap, bom=bom, battle_shout=battle_shout)
 
-    holy_sp = add_toggler(crusader_judge, 80 * mult_toggler(imp_crusader, 1.15))
-    neutral_sp = spell_power(ap=ap, bonus_sp=bonus_sp, sheath=sheath, weapon_sp=weapon_sp, wb=wb)
+    holy_sp = add_toggler(crusader_judge, 80 * mult_toggler(imp_crusader, 1.15)) + bonus_holy_sp
+    neutral_sp = neutral_spell_power(ap=ap, bonus_sp=bonus_sp, sheath=sheath, wb=wb)
     sp = neutral_sp + holy_sp
 
     if Use_Total_Stats:
@@ -551,7 +558,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     base_mana = Base_Mana
 
     # cds
-    melee_cd = weapon_speed * mult_toggler(wb, 0.9)
+    melee_cd = weapon_speed * mult_toggler(wb, 0.9) * mult_toggler(acp_cd, 0.5)
 
     cons_cd = 8
 
@@ -765,7 +772,6 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     print(f"{round(holy_dps / (non_holy_dps + holy_dps) * 100, ndigits=1)}% holy damage")
     print(f"Mana loss per sec: {-round(mana_net_flow, ndigits=1)}")
     print(f"Time until oom: {time_until_oom}")
-    print(f"Melee crit chance: {round(melee_crit * 100, ndigits=1)}%")
     print()
     if Extended_Details:
         print("DPS Values")
@@ -791,6 +797,14 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
             print(f"Divine Storm: {round(divine_storm_dps, ndigits=1)}")
         if needle:
             print(f"Needle Proc: {round(needle_dps, ndigits=1)}")
+        print()
+        if Print_Assumptions:
+            print("Assumed Stats after talents and buffs")
+            print(f"Total Str: {round(strength)}")
+            print(f"Total Agi: {round(agility)}")
+            print(f"Total Int: {round(intellect)}")
+            print(f"Total SP: {round(sp)}")
+            print(f"Melee crit chance: {round(melee_crit * 100, ndigits=1)}%")
 
 
 # execution
@@ -803,7 +817,7 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   boss_parry=Boss_Parry, armor_mitigation=Boss_Armor_Mitigation, ds=Divine_Storm,
                   name=Build_Name, spell_crit=Spell_Crit, ret_aura=Ret_Aura, boss_speed=Enemy_Speed, wf=WF,
                   deflection=Deflection, base_parry=Base_Parry, exorcism=Exorcism, shock=Holy_Shock,
-                  crusader_judge=Judge_Of_Crusader, weapon_sp=Weapon_SP, weapon_str=Weapon_Strength,
+                  crusader_judge=Judge_Of_Crusader, bonus_holy_sp=Bonus_Holy_SP, weapon_str=Weapon_Strength,
                   benediction=Benediction, arcane=Arcane_Intellect, gear_int=Gear_Intellect, bow=BoW,
                   guarded=Guarded_By_Light, wis_judge=Judge_Of_Wisdom, holy_power=Holy_Power, imp_bow=Improved_BoW,
                   divine_favor=Divine_Favor, divine_int=Divine_Intellect,
@@ -811,11 +825,10 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
                   extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn, mark=MoW, infusion=Infusion, leader=LotP,
                   wep_agi=Weapon_Agility, wep_int=Weapon_Intellect, needle=Gnomer_Needle_Proc, total_int=Total_Int,
-                  total_str=Total_Str, total_agi=Total_Agi)
-
+                  total_str=Total_Str, total_agi=Total_Agi, acp_cd=ACP_ON_USE)
 
 # build name
-Build_Name = "Holy Prot with Gnomer sword"
+Build_Name = "Holy Prot with BFD hammer"
 # talent toggles
 # holy
 Improved_SoR = False
@@ -852,36 +865,42 @@ Guarded_By_Light = False
 Art_Of_War = True
 
 # weapon values
-Weapon_Min = 41
-Weapon_Max = 75
-Weapon_Speed = 1.7
-Weapon_Enchant_Bonus = 10
+Weapon_Min = 17
+Weapon_Max = 32
+Weapon_Speed = 1.4
+Weapon_Enchant_Bonus = 3
 
 Weapon_Strength = 0
 Weapon_Intellect = 0
 Weapon_Agility = 0
-Weapon_SP = 0
+
 Handedness = 1  # 1 or 2
 Racial_Bonus = True
 
-Gnomer_Needle_Proc = True  # activates the proc of the 1h epic
+Gnomer_Needle_Proc = False  # activates the proc of the 1h epic
+ACP_ON_USE = False  # activates automatic crowd pummeler cd
 
-# stat values
-Gear_Strength = 200  # before talent, buff, weapon stats
+# non-weapon stat values
+Gear_Strength = 0  # before talent, buff, weapon stats
 Gear_Agi = 0  # before buff, weapon stats
-Gear_AP = 0
-Bonus_SP = 0
-Bonus_Crit = 0  # as decimal
-Bonus_Skill = 0
-Spell_Crit = 6 / 100  # as decimal
-Base_Parry = 5 / 100  # as decimal
-
-Bonus_Hit = 0  # as decimal
 Gear_Intellect = 0
 
-Total_Int = 0
-Total_Str = 0
-Total_Agi = 0
+# total value input instead if chosen at start
+Total_Str = 217
+Total_Agi = 90
+Total_Int = 51
+
+# bonus stats
+Gear_AP = 16
+Bonus_SP = 0
+Bonus_Holy_SP = 0
+Bonus_Skill = 0
+Bonus_Crit = 3/100  # as decimal
+Bonus_Hit = 2/100  # as decimal
+
+# values to be estimated
+Spell_Crit = 7.75 / 100  # as decimal
+Base_Parry = 5.28 / 100  # as decimal
 
 threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=AoW_Judge_Proc, wb=WB,
                   imp_sor=Improved_SoR, imp_rf=Improved_RF, imp_judge=Improved_Judge, art_of_war=Art_Of_War,
@@ -892,7 +911,7 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   boss_parry=Boss_Parry, armor_mitigation=Boss_Armor_Mitigation, ds=Divine_Storm,
                   name=Build_Name, spell_crit=Spell_Crit, ret_aura=Ret_Aura, boss_speed=Enemy_Speed, wf=WF,
                   deflection=Deflection, base_parry=Base_Parry, exorcism=Exorcism, shock=Holy_Shock,
-                  crusader_judge=Judge_Of_Crusader, weapon_sp=Weapon_SP, weapon_str=Weapon_Strength,
+                  crusader_judge=Judge_Of_Crusader, bonus_holy_sp=Bonus_Holy_SP, weapon_str=Weapon_Strength,
                   benediction=Benediction, arcane=Arcane_Intellect, gear_int=Gear_Intellect, bow=BoW,
                   guarded=Guarded_By_Light, wis_judge=Judge_Of_Wisdom, holy_power=Holy_Power, imp_bow=Improved_BoW,
                   divine_favor=Divine_Favor, divine_int=Divine_Intellect,
@@ -900,4 +919,4 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
                   extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn, mark=MoW, infusion=Infusion, leader=LotP,
                   wep_agi=Weapon_Agility, wep_int=Weapon_Intellect, needle=Gnomer_Needle_Proc, total_int=Total_Int,
-                  total_str=Total_Str, total_agi=Total_Agi)
+                  total_str=Total_Str, total_agi=Total_Agi, acp_cd=ACP_ON_USE)
