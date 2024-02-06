@@ -1,33 +1,33 @@
 import random
 
 # build name
-Build_Name = "Prot Ret with Avenger's"
+Build_Name = "Sheath Shockadin with ACP CD OFF"
 # talent toggles
 # holy
-Improved_SoR = False
-Improved_BoW = False
-Divine_Strength = False
-Divine_Intellect = False
-Holy_Power = False
+Improved_SoR = True
+Improved_BoW = True
+Divine_Strength = True
+Divine_Intellect = True
+Holy_Power = True
 # prot
-Precision = True
-Improved_RF = True
+Precision = False
+Improved_RF = False
 # ret
-Conviction_Points = 5  # 0 to 5
-Improved_Judge = True
-Deflection = 3  # 0 to 5
-Benediction = True
-Improved_Ret_Aura = True
+Conviction_Points = 0  # 0 to 5
+Improved_Judge = False
+Deflection = 0  # 0 to 5
+Benediction = False
+Improved_Ret_Aura = False
 Two_Hand_Spec = False
 Vengeance = False
 
 # abilities toggle
-Consecration = False
-Seal = "soc"  # sor, soc or som
-Divine_Storm = True
+Consecration = True
+Seal = "sor"  # sor, soc or som
+Divine_Storm = False
 Exorcism = True
-Holy_Shock = False
-Divine_Favor = False
+Holy_Shock = True
+Divine_Favor = True
 Ret_Aura = True
 
 Sheath = True
@@ -37,9 +37,9 @@ Guarded_By_Light = False
 Art_Of_War = True
 
 # weapon values
-Weapon_Min = 117
-Weapon_Max = 175
-Weapon_Speed = 3.6
+Weapon_Min = 53
+Weapon_Max = 85
+Weapon_Speed = 2
 Weapon_Enchant_Bonus = 5
 
 Weapon_Strength = 0
@@ -59,14 +59,14 @@ Gear_Intellect = 0
 
 # use total value stat input instead (overrides wep+gear stats)
 Use_Total_Stats = True  # toggle this to use insert total stats (both gear and base at once)
-Total_Str = 220
-Total_Agi = 90
+Total_Str = 205 + 22
+Total_Agi = 90 + 8
 Total_Int = 51
 
 # bonus stats
 Gear_AP = 0
 Bonus_SP = 0
-Bonus_Holy_SP = 24
+Bonus_Holy_SP = 0
 Bonus_Crit = 3 / 100  # as decimal
 Bonus_Skill = 0
 Bonus_Hit = 2/100  # as decimal
@@ -434,7 +434,7 @@ def sor_seal_five(speed, sp, imp_sor, handedness):
     if handedness == 1:
         scale = 0.1 * sp
     else:
-        scale = 1.2 * sp
+        scale = 0.12 * sp
     return base * mult_toggler(imp_sor, 1.15) + scale
 
 
@@ -844,7 +844,7 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   total_str=Total_Str, total_agi=Total_Agi, acp_cd=ACP_ON_USE)
 
 # build name
-Build_Name = "Holy Prot with Needle Epic"
+Build_Name = "Holy Prot with BFD Hammer"
 # talent toggles
 # holy
 Improved_SoR = False
@@ -881,9 +881,9 @@ Guarded_By_Light = False
 Art_Of_War = True
 
 # weapon values
-Weapon_Min = 41
-Weapon_Max = 75
-Weapon_Speed = 1.7
+Weapon_Min = 17
+Weapon_Max = 32
+Weapon_Speed = 1.3
 Weapon_Enchant_Bonus = 3
 
 Weapon_Strength = 0
@@ -893,7 +893,7 @@ Weapon_Agility = 0
 Handedness = 1  # 1 or 2
 Racial_Bonus = True
 
-Gnomer_Needle_Proc = True  # activates the proc of the 1h epic
+Gnomer_Needle_Proc = False  # activates the proc of the 1h epic
 ACP_ON_USE = False  # activates automatic crowd pummeler cd
 
 # non-weapon stat values
@@ -902,7 +902,7 @@ Gear_Agi = 0  # before buff, weapon stats
 Gear_Intellect = 0
 
 # total value input instead if chosen at start
-Total_Str = 214
+Total_Str = 205 + 3
 Total_Agi = 90
 Total_Int = 51
 
