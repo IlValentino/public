@@ -558,7 +558,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     base_mana = Base_Mana
 
     # cds
-    melee_cd = weapon_speed * mult_toggler(wb, 0.9) * mult_toggler(acp_cd, 0.5)
+    melee_cd = weapon_speed * mult_toggler(wb, 1/1.1) * mult_toggler(acp_cd, 1/1.5)
 
     cons_cd = 8
 
