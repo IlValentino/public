@@ -1,7 +1,7 @@
 import random
 
 # build name
-Build_Name = "Deep Ret with Rocket Cleaver"
+Build_Name = "Deep Ret with Avenger's"
 # talent toggles
 # holy
 Improved_SoR = False
