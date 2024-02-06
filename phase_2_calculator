@@ -880,8 +880,8 @@ Art_Of_War = True
 # weapon values
 Weapon_Min = 41
 Weapon_Max = 75
-Weapon_Speed = 2
-Weapon_Enchant_Bonus = 5
+Weapon_Speed = 1.7
+Weapon_Enchant_Bonus = 3
 
 Weapon_Strength = 0
 Weapon_Intellect = 0
@@ -890,7 +890,7 @@ Weapon_Agility = 0
 Handedness = 1  # 1 or 2
 Racial_Bonus = True
 
-Gnomer_Needle_Proc = False  # activates the proc of the 1h epic
+Gnomer_Needle_Proc = True  # activates the proc of the 1h epic
 ACP_ON_USE = False  # activates automatic crowd pummeler cd
 
 # non-weapon stat values
