@@ -1,7 +1,7 @@
 import random
 
 # build name
-Build_Name = "Deep Ret with Avenger's"
+Build_Name = "Prot Ret with Avenger's"
 # talent toggles
 # holy
 Improved_SoR = False
@@ -10,16 +10,16 @@ Divine_Strength = False
 Divine_Intellect = False
 Holy_Power = False
 # prot
-Precision = False
-Improved_RF = False
+Precision = True
+Improved_RF = True
 # ret
 Conviction_Points = 5  # 0 to 5
 Improved_Judge = True
-Deflection = True
+Deflection = 3  # 0 to 5
 Benediction = True
 Improved_Ret_Aura = True
-Two_Hand_Spec = True
-Vengeance = True
+Two_Hand_Spec = False
+Vengeance = False
 
 # abilities toggle
 Consecration = False
@@ -601,7 +601,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     wf_pps = wf_proc_chance * 1 / melee_cd
 
     extra_hit_per_parry = 0.24
-    parry_per_sec = (base_parry + add_toggler(deflection, 5 / 100)) / boss_speed
+    parry_per_sec = (base_parry + deflection/100) / boss_speed
     parry_hit_per_sec = extra_hit_per_parry * parry_per_sec
 
     soc_p = 7 / 60 * weapon_speed
@@ -656,26 +656,35 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     sor_seal_three_dmg = sor_seal_three(speed=weapon_speed, sp=sp, imp_sor=imp_sor, handedness=handedness) * evasion_c
     sor_judge_three_dmg = sor_judge_three(sp=sp, imp_sor=imp_sor) * spell_crit_c * spell_miss_c
 
+    sor_seal_three_dps = sor_seal_three_dmg * (1 / melee_cd + parry_hit_per_sec + wf_pps) * sanctity_c * vengeance_c
+    sor_judge_three_dps = sor_judge_three_dmg/judge_cd * sanctity_c * vengeance_c
+    sor_three_dps = sor_seal_three_dps + sor_judge_three_dps
+
     sor_seal_five_dmg = sor_seal_five(speed=weapon_speed, sp=sp, imp_sor=imp_sor, handedness=handedness) * evasion_c
     sor_judge_five_dmg = sor_judge_five(sp=sp, imp_sor=imp_sor) * spell_crit_c * spell_miss_c
 
-    sor_three_dps = sor_judge_three_dmg / judge_cd + sor_seal_three_dmg * (1 / melee_cd + parry_hit_per_sec + wf_pps)
-    sor_five_dps = sor_judge_five_dmg / judge_cd + sor_seal_five_dmg * (1 / melee_cd + parry_hit_per_sec + wf_pps)
+    sor_seal_five_dps = sor_seal_five_dmg * (1 / melee_cd + parry_hit_per_sec + wf_pps) * sanctity_c * vengeance_c
+    sor_judge_five_dps = sor_judge_five_dmg / judge_cd * sanctity_c * vengeance_c
+    sor_five_dps = sor_seal_five_dps + sor_judge_five_dps
 
-    sor_dps = max(sor_three_dps, sor_five_dps) * seal_enabler("sor", seal) * sanctity_c * vengeance_c
+    sor_dps = max(sor_three_dps, sor_five_dps) * seal_enabler("sor", seal)
 
     soc_seal_dmg = (soc_seal(melee=base_melee, neutral_sp=neutral_sp, holy_sp=holy_sp) * evasion_c * melee_crit_c *
                     two_hand_spec_c)
     soc_judge_dmg = soc_judge_three(sp=sp, in_cap=False) * melee_crit_c * spell_miss_c
 
-    soc_dps = ((soc_seal_dmg * soc_pps + soc_judge_dmg / judge_cd) * seal_enabler("soc", seal) *
-               sanctity_c * vengeance_c)
+    soc_seal_dps = soc_seal_dmg * soc_pps * sanctity_c * vengeance_c
+    soc_judge_dps = soc_judge_dmg / judge_cd * sanctity_c * vengeance_c
+
+    soc_dps = (soc_judge_dps + soc_seal_dps) * seal_enabler("soc", seal)
 
     som_seal_dmg = som_seal(melee=base_melee) * evasion_c * melee_crit_c * two_hand_spec_c
     som_judge_dmg = som_judge(melee=base_melee) * melee_crit_c * spell_miss_c
 
-    som_dps = (som_seal_dmg * (parry_hit_per_sec + 1 / melee_cd + wf_pps)
-               + som_judge_dmg / judge_cd) * seal_enabler("som", seal) * sanctity_c * vengeance_c
+    som_seal_dps = som_seal_dmg * (parry_hit_per_sec + 1 / melee_cd + wf_pps) * sanctity_c * vengeance_c
+    som_judge_dps = som_judge_dmg/judge_cd * sanctity_c * vengeance_c
+
+    som_dps = (som_seal_dps + som_judge_dps) * seal_enabler("som", seal)
 
     divine_storm_dmg = divine_storm(melee=special_melee) * evasion_c * armor_c * melee_crit_c
     divine_storm_dps = divine_storm_dmg / divine_storm_cd * mult_toggler(not ds, 0) * two_hand_spec_c * vengeance_c
@@ -780,13 +789,17 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
             print(f"Consecration: {round(cons_dps, ndigits=1)}")
         if seal == "sor":
             if sor_three_dps > sor_five_dps:
-                print(f"SoR 3: {round(sor_dps, ndigits=1)}")
+                print(f"SoR3 Seal: {round(sor_seal_three_dps, ndigits=1)}")
+                print(f"SoR3 Judge: {round(sor_judge_three_dps, ndigits=1)}")
             else:
-                print(f"SoR 5: {round(sor_dps, ndigits=1)}")
+                print(f"SoR5 Seal: {round(sor_seal_five_dps, ndigits=1)}")
+                print(f"SoR5 Judge: {round(sor_judge_five_dps, ndigits=1)}")
         if seal == "soc":
-            print(f"SoC: {round(soc_dps, ndigits=1)}")
+            print(f"SoC Seal: {round(soc_seal_dps, ndigits=1)}")
+            print(f"SoC Judge: {round(soc_judge_dps, ndigits=1)}")
         if seal == "som":
-            print(f"SoM: {round(som_dps, ndigits=1)}")
+            print(f"SoM Seal: {round(som_seal_dps, ndigits=1)}")
+            print(f"SoM Judge: {round(som_judge_dps, ndigits=1)}")
         if shock:
             print(f"Holy Shock: {round(holy_shock_dps, ndigits=1)}")
         if exorcism:
@@ -828,7 +841,7 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   total_str=Total_Str, total_agi=Total_Agi, acp_cd=ACP_ON_USE)
 
 # build name
-Build_Name = "Holy Prot with BFD hammer"
+Build_Name = "Holy Prot with Needle Epic"
 # talent toggles
 # holy
 Improved_SoR = False
@@ -865,10 +878,10 @@ Guarded_By_Light = False
 Art_Of_War = True
 
 # weapon values
-Weapon_Min = 17
-Weapon_Max = 32
-Weapon_Speed = 1.4
-Weapon_Enchant_Bonus = 3
+Weapon_Min = 41
+Weapon_Max = 75
+Weapon_Speed = 2
+Weapon_Enchant_Bonus = 5
 
 Weapon_Strength = 0
 Weapon_Intellect = 0
@@ -886,7 +899,7 @@ Gear_Agi = 0  # before buff, weapon stats
 Gear_Intellect = 0
 
 # total value input instead if chosen at start
-Total_Str = 217
+Total_Str = 214
 Total_Agi = 90
 Total_Int = 51
 
