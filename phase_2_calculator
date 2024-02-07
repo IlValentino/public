@@ -610,7 +610,9 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 
     # procs per per sec
     wf_proc_chance = 0.2
-    wf_pps = min(wf_proc_chance * 1 / melee_cd + wf_proc_chance * 1 / divine_storm_cd, wf_cd)
+    wf_pps = min(
+        wf_proc_chance * 1 / melee_cd + wf_proc_chance * 1 / divine_storm_cd + add_toggler(seal == "soc", 1 / judge_cd),
+        wf_cd)
 
     soc_p = 7 / 60 * weapon_speed
     soc_pps = 7 / 60 + (1 - soc_p) * wf_proc_chance * soc_p / melee_cd * mult_toggler(not wf, 0)
@@ -622,8 +624,9 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 
     seal_proc_chance = (add_toggler(seal == "sor", 1) + add_toggler(seal == "som", 1) +
                         add_toggler(seal == "soc", soc_p))
+    
     needle_proc_chance = 0.20
-    needle_pps = (1+seal_proc_chance) * needle_proc_chance / melee_cd
+    needle_pps = (1 + seal_proc_chance) * needle_proc_chance / melee_cd
 
     # weapon_special_pps = add_toggler(needle, needle_pps) do wep procs proc seal?!
 
