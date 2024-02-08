@@ -22,6 +22,9 @@ Two_Hand_Spec = False
 Vengeance = False
 
 # abilities toggle
+Righteous_Fury = True
+Hand_Of_Reckoning = True
+Crusader_Strike = False
 Consecration = True
 Seal = "sor"  # sor, soc or som
 Divine_Storm = False
@@ -101,6 +104,7 @@ Enemy_Speed = 2
 
 # settings
 AoW_Judge_Proc = True
+CS_WF_Proc = True
 Extended_Details = True
 Print_Assumptions = True
 
@@ -152,7 +156,7 @@ def down_ranked(lower_rank_dps, higher_rank_dps):
         return False
 
 
-def toggle_checker(bom, horn, aow, guarded, infusion, sheath, seal, extra_hit, extra_crit):
+def toggle_checker(bom, horn, aow, guarded, infusion, sheath, seal, extra_hit, extra_crit, hor, cs):
     if bom and horn:
         print("Cant have both BOM and Horn buff.")
         exit()
@@ -170,6 +174,9 @@ def toggle_checker(bom, horn, aow, guarded, infusion, sheath, seal, extra_hit, e
         exit()
     if extra_crit > 1:
         print("Invalid crit value, use decimals.")
+        exit()
+    if cs and hor:
+        print("Can't have both Crusader Strike and Hand of Reckoning.")
         exit()
 
 
@@ -415,11 +422,18 @@ def crit_coefficient(crit_chance):
     return 1 + crit_chance
 
 
-def holy_threat_coefficient(imp_rf):
-    if imp_rf:
-        return 2.886
+def holy_threat_coefficient(imp_rf, hor, rf):
+    if rf:
+        if imp_rf and hor:
+            return 2.886
+        elif hor and not imp_rf:
+            return 2.22
+        elif not hor and imp_rf:
+            return 0.9
+        else:
+            return 0.6
     else:
-        return 2.22
+        return 1
 
 
 # seals
@@ -515,10 +529,10 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
                       guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor,
                       divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance, racial,
                       extra_wep_skill, extra_hit, horn, mark, infusion, leader, wep_agi, wep_int, needle, total_agi,
-                      total_str, total_int, acp_cd):
+                      total_str, total_int, acp_cd, hor, cs, rf):
     # debugger
     toggle_checker(bom=bom, horn=horn, aow=art_of_war, guarded=guarded, infusion=infusion, sheath=sheath, seal=seal,
-                   extra_crit=extra_crit, extra_hit=extra_hit)
+                   extra_crit=extra_crit, extra_hit=extra_hit, cs=cs, hor=hor)
 
     # stats
     skill_bonus = add_toggler(racial, 5) + extra_wep_skill
@@ -572,6 +586,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 
     cons_cd = 8
 
+    cs_cd = 6
+
     exo_hs_cd_sim = aow_infusion_expected_cd(speed=melee_cd, melee_crit=melee_crit,
                                              imp_judge=imp_judge, wf=wf,
                                              aow_judge_proc=aow_judge_proc, seal=seal,
@@ -611,7 +627,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     # procs per per sec
     wf_proc_chance = 0.2
     wf_pps = min(
-        wf_proc_chance * (1 / melee_cd + 1 / divine_storm_cd + add_toggler(seal == "soc", 1 / judge_cd)),
+        wf_proc_chance * (1 / melee_cd + 1 / divine_storm_cd + add_toggler(seal == "soc", 1 / judge_cd) + 
+                          add_toggler(cs, 1/cs_cd)),
         wf_cd)
 
     soc_p = 7 / 60 * weapon_speed
@@ -656,6 +673,9 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 
     exorcism_dps = (mult_toggler(not exorcism, 0) * exorcism_dmg(sp) / exorcism_cd * spell_crit_c * spell_miss_c
                     * sanctity_c * vengeance_c)
+
+    cs_damage = 0.75 * melee
+    cs_dps = cs_damage / cs_cd * mult_toggler(not cs, 0)
 
     holy_shock_damage = holy_shock(sp) * spell_miss_c * spell_crit_c
     holy_shock_dps_without_df = holy_shock_damage / holy_shock_cd
@@ -712,7 +732,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     needle_dps = needle_dmg * needle_pps * mult_toggler(not needle, 0)
 
     holy_dps = exorcism_dps + cons_dps + som_dps + soc_dps + sor_dps + ret_aura_dps + holy_shock_dps + needle_dps
-    non_holy_dps = divine_storm_dps + melee_dps
+    non_holy_dps = divine_storm_dps + melee_dps + cs_dps
 
     # heal
     ds_heal = divine_storm_heal(melee=special_melee)
@@ -773,9 +793,12 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 
     infusion_mana = holy_shock_mana
     infusion_pps = ((cd_ratio - 1) * spell_crit_c + 1) / divine_favor_cd
-    infusion_mps = infusion_mana * infusion_pps
+    infusion_mps = infusion_mana * infusion_pps * mult_toggler(not infusion, 0)
 
-    mana_gain_per_sec = bow_mps + guarded_mps + wis_judge_mps + infusion_mps
+    cs_mana = 0.05 * mana
+    cs_mps = cs_mana / cs_cd * mult_toggler(not cs, 0)
+
+    mana_gain_per_sec = bow_mps + guarded_mps + wis_judge_mps + infusion_mps + cs_mps
 
     mana_net_flow = mana_gain_per_sec - mana_loss_per_sec
 
@@ -785,8 +808,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
         time_until_oom = "Never"
 
     # threat per sec
-    holy_mod = holy_threat_coefficient(imp_rf=imp_rf)
-    non_holy_mod = 1.5
+    holy_mod = holy_threat_coefficient(imp_rf=imp_rf, hor=hor, rf=rf)
+    non_holy_mod = mult_toggler(rf and hor, 1.5)
 
     tps = holy_dps * holy_mod + non_holy_dps * non_holy_mod + ds_hps * 0.5 * holy_mod
 
@@ -826,6 +849,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
             print(f"Divine Storm: {round(divine_storm_dps, ndigits=1)}")
         if needle:
             print(f"Needle Proc: {round(needle_dps, ndigits=1)}")
+        if cs:
+            print(f"CS: {cs_dps}")
         print()
         if Print_Assumptions:
             print("Assumed Stats after talents and buffs")
@@ -854,7 +879,8 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
                   extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn, mark=MoW, infusion=Infusion, leader=LotP,
                   wep_agi=Weapon_Agility, wep_int=Weapon_Intellect, needle=Gnomer_Needle_Proc, total_int=Total_Int,
-                  total_str=Total_Str, total_agi=Total_Agi, acp_cd=ACP_ON_USE)
+                  total_str=Total_Str, total_agi=Total_Agi, acp_cd=ACP_ON_USE, hor=Hand_Of_Reckoning,
+                  cs=Crusader_Strike, rf=Righteous_Fury)
 
 # build name
 Build_Name = "Holy Prot with BFD Hammer"
@@ -879,6 +905,9 @@ Two_Hand_Spec = False
 Vengeance = False
 
 # abilities toggle
+Righteous_Fury = True
+Hand_Of_Reckoning = True
+Crusader_Strike = False
 Consecration = True
 Seal = "sor"  # sor, soc or som
 Divine_Storm = False
@@ -948,4 +977,5 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   two_hand_spec=Two_Hand_Spec, sanctity_aura=Sanctity_Aura, vengeance=Vengeance, racial=Racial_Bonus,
                   extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn, mark=MoW, infusion=Infusion, leader=LotP,
                   wep_agi=Weapon_Agility, wep_int=Weapon_Intellect, needle=Gnomer_Needle_Proc, total_int=Total_Int,
-                  total_str=Total_Str, total_agi=Total_Agi, acp_cd=ACP_ON_USE)
+                  total_str=Total_Str, total_agi=Total_Agi, acp_cd=ACP_ON_USE, hor=Hand_Of_Reckoning,
+                  cs=Crusader_Strike, rf=Righteous_Fury)
