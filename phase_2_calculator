@@ -114,7 +114,7 @@ Base_Strength = 70
 Base_Intellect = 49
 Boss_Level = 42
 Player_Level = 40
-Melee_Crit_Per_Agi = 0.0675 / 100
+Melee_Crit_Per_Agi = (1/14) / 100
 Base_Melee_Crit = 0.6 / 100
 Base_Agi = 46
 
