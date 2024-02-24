@@ -764,7 +764,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 
     sor_seal_dps = sor_seal_dmg * (1 / melee_cd + wf_pps) * sanctity_c * vengeance_c
     sor_judge_dps = sor_judge_dmg / judge_cd * sanctity_c * vengeance_c
-    sor_dps = sor_seal_dps + sor_judge_dps * seal_enabler("sor", seal)
+    sor_dps = (sor_seal_dps + sor_judge_dps) * seal_enabler("sor", seal)
 
     soc_seal_dmg = (soc_seal(melee=base_melee, neutral_sp=neutral_sp, holy_sp=holy_sp) * evasion_c * melee_crit_c *
                     two_hand_spec_c)
@@ -947,7 +947,7 @@ Precision = True
 Improved_RF = True
 # ret
 Conviction_Points = 0  # 0 to 5
-Improved_Judge = True 
+Improved_Judge = True
 Deflection = False
 Benediction = True
 Improved_Ret_Aura = False
