@@ -1,22 +1,22 @@
 import random
 
 # build name
-Build_Name = "Sheath Shockadin with BFD Hammer"
+Build_Name = "Holy Prot with BFD Hammer with SoM and AoW"
 # talent toggles
 # holy
-Improved_SoR = True
-Improved_BoW = True
+Improved_SoR = False
+Improved_BoW = False
 Divine_Strength = True
 Divine_Intellect = True
-Holy_Power = True
+Holy_Power = False
 # prot
-Precision = False
-Improved_RF = False
+Precision = True
+Improved_RF = True
 # ret
 Conviction_Points = 0  # 0 to 5
-Improved_Judge = False
+Improved_Judge = True
 Deflection = 0  # 0 to 5
-Benediction = False
+Benediction = True
 Improved_Ret_Aura = False
 Two_Hand_Spec = False
 Vengeance = False
@@ -26,11 +26,11 @@ Righteous_Fury = True
 Hand_Of_Reckoning = True
 Crusader_Strike = False
 Consecration = True
-Seal = "sor"  # sor, soc or som
+Seal = "som"  # sor, soc or som
 Divine_Storm = False
 Exorcism = True
-Holy_Shock = True
-Divine_Favor = True
+Holy_Shock = False
+Divine_Favor = False
 Ret_Aura = True
 
 Sheath = True
@@ -43,7 +43,7 @@ Art_Of_War = True
 Weapon_Min = 17
 Weapon_Max = 32
 Weapon_Speed = 1.3
-Weapon_Enchant_Bonus = 3
+Weapon_Enchant_Bonus = 0
 
 Weapon_Strength = 0
 Weapon_Intellect = 0
@@ -67,7 +67,7 @@ Total_Agi = 90
 Total_Int = 51
 
 # bonus stats
-Gear_AP = 0
+Gear_AP = 16
 Bonus_SP = 0
 Bonus_Holy_SP = 0
 Bonus_Crit = 3 / 100  # as decimal
@@ -94,12 +94,12 @@ Arcane_Intellect = True
 BoW = True
 Judge_Of_Wisdom = True
 MoW = True
-LotP = True
+LotP = False
 
 # boss values (choose what boss is doing)
 Boss_Dodge = 6 / 100  # as decimal
 Boss_Parry = 4 / 100  # as decimal
-Boss_Armor_Mitigation = 6 / 100  # as decimal
+Boss_Armor_Mitigation = 30 / 100  # as decimal
 Enemy_Speed = 2
 
 # settings
@@ -181,7 +181,8 @@ def toggle_checker(bom, horn, aow, guarded, infusion, sheath, seal, extra_hit, e
 
 
 # art of war sim
-def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal, exo_used, hs_used, aow, infusion, wf):
+def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal, exo_used, hs_used, aow, infusion, wf,
+                             ds, cs):
     crit_chance = melee_crit
 
     gcd = 1.5
@@ -203,6 +204,14 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
     judge_cd = 10 - add_toggler(imp_judge, 2)
     judge_on_cd = False
     judge_timer = 0
+
+    ds_cd = 10
+    ds_on_cd = False
+    ds_timer = 0
+
+    cs_cd = 6
+    cs_on_cd = False
+    cs_timer = 0
 
     exorcism_counter = 0
     holy_shock_counter = 0
@@ -251,6 +260,43 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
                     if hs_on_cd and hs_used:
                         hs_on_cd = False
                         hs_cd_timer = 0
+                if chance(crit_chance) and aow and seal != "sor":
+                    if exo_on_cd and exo_used:
+                        exo_on_cd = False
+                        exo_cd_timer = 0
+                    if hs_on_cd and hs_used:
+                        hs_on_cd = False
+                        hs_cd_timer = 0
+
+        if not ds_on_cd and not on_gcd and ds:
+            ds_on_cd = True
+            ds_timer = ds_cd
+
+            on_gcd = True
+            gcd_timer = gcd
+
+            if chance(crit_chance) and aow:
+                if exo_on_cd and exo_used:
+                    exo_on_cd = False
+                    exo_cd_timer = 0
+                if hs_on_cd and hs_used:
+                    hs_on_cd = False
+                    hs_cd_timer = 0
+
+        if not cs_on_cd and not on_gcd and cs:
+            cs_on_cd = True
+            cs_timer = cs_cd
+
+            on_gcd = True
+            gcd_timer = gcd
+
+            if chance(crit_chance) and aow:
+                if exo_on_cd and exo_used:
+                    exo_on_cd = False
+                    exo_cd_timer = 0
+                if hs_on_cd and hs_used:
+                    hs_on_cd = False
+                    hs_cd_timer = 0
 
         if not judge_on_cd and not on_gcd:
             judge_on_cd = True
@@ -291,6 +337,16 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
             judge_timer = round(judge_timer - 0.1, ndigits=1)
             if judge_timer == 0:
                 judge_on_cd = False
+
+        if ds_on_cd:
+            ds_timer = round(ds_timer - 0.1, ndigits=1)
+            if ds_timer == 0:
+                ds_on_cd = False
+
+        if cs_on_cd:
+            cs_timer = round(cs_timer - 0.1, ndigits=1)
+            if cs_timer == 0:
+                cs_on_cd = False
 
         t = round(t + 0.1, ndigits=1)
 
@@ -422,12 +478,38 @@ def crit_coefficient(crit_chance):
     return 1 + crit_chance
 
 
+def auto_attack_table_coefficient(miss, dodge, parry, glancing, crit, skill_bonus):
+    new_miss = miss
+    if new_miss + dodge <= 1:
+        new_dodge = dodge
+    else:
+        new_dodge = 1 - new_miss
+    if new_miss + new_dodge + parry <= 1:
+        new_parry = parry
+    else:
+        new_parry = 1 - (new_miss+new_dodge)
+    if new_miss + new_dodge + new_parry + glancing <= 1:
+        new_glancing = glancing
+    else:
+        new_glancing = 1 - (new_miss+new_dodge+new_parry)
+    if new_miss + new_dodge + new_parry + new_glancing + crit <= 1:
+        new_crit = crit
+    else:
+        new_crit = 1 - (new_miss+new_dodge+new_parry+new_glancing)
+
+    new_normal = 1 - (new_miss + new_dodge + new_parry + new_glancing + new_crit)
+
+    output = new_crit * 2 + new_normal + new_glancing * glance_reduction_func(Boss_Level, Player_Level, skill_bonus)
+
+    return output
+
+
 def holy_threat_coefficient(imp_rf, hor, rf):
     if rf:
         if imp_rf and hor:
-            return 2.886
+            return 2.85
         elif hor and not imp_rf:
-            return 2.22
+            return 2.23
         elif not hor and imp_rf:
             return 0.9
         else:
@@ -437,34 +519,19 @@ def holy_threat_coefficient(imp_rf, hor, rf):
 
 
 # seals
-def sor_seal_three(speed, sp, imp_sor, handedness):
-    if handedness == 1:
-        base = 5 * speed - 1
-    else:
-        base = 6.25 * speed - 1.12
-    scale = 0.18 * sp
-    return base * mult_toggler(imp_sor, 1.15) + scale
-
-
-def sor_seal_five(speed, sp, imp_sor, handedness):
+def sor_seal(speed, sp, imp_sor, handedness):
     if handedness == 1:
         base = 10 * speed - 1.5
     else:
         base = 11.25 * speed + 1.3
     if handedness == 1:
-        scale = 0.1 * sp
+        scale = 0.2 * sp
     else:
-        scale = 0.12 * sp
+        scale = 0.2125 * sp
     return base * mult_toggler(imp_sor, 1.15) + scale
 
 
-def sor_judge_three(sp, imp_sor):
-    base = (53 + 58) / 2
-    scale = 0.5 * sp
-    return base * mult_toggler(imp_sor, 1.15) + scale
-
-
-def sor_judge_five(sp, imp_sor):
+def sor_judge(sp, imp_sor):
     base = (96 + 105) / 2
     scale = 0.5 * sp
     return base * mult_toggler(imp_sor, 1.15) + scale
@@ -486,7 +553,7 @@ def soc_judge_three(sp, in_cap):
 
 
 def som_seal(melee):
-    return 0.3 * melee
+    return 0.4 * melee
 
 
 def som_judge(melee):
@@ -542,7 +609,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     else:
         total_strength = Base_Strength + gear_strength + weapon_str
 
-    strength = ((total_strength + add_toggler(horn, 40) + add_toggler(mark, 8)) *
+    strength = ((total_strength + add_toggler(horn, 28) + add_toggler(mark, 8)) *
                 mult_toggler(kings, 1.1) * mult_toggler(divine_strength, 1.1))
 
     if Use_Total_Stats:
@@ -550,7 +617,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     else:
         total_agility = gear_agi + Base_Agi + wep_agi
 
-    agility = (total_agility + add_toggler(horn, 40) + add_toggler(mark, 8)) * mult_toggler(kings, 1.1)
+    agility = (total_agility + add_toggler(horn, 28) + add_toggler(mark, 8)) * mult_toggler(kings, 1.1)
 
     melee_crit = melee_crit_chance(extra_crit=extra_crit, agi=agility, conviction_points=conviction_points,
                                    leader=leader)
@@ -591,7 +658,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     exo_hs_cd_sim = aow_infusion_expected_cd(speed=melee_cd, melee_crit=melee_crit,
                                              imp_judge=imp_judge, wf=wf,
                                              aow_judge_proc=aow_judge_proc, seal=seal,
-                                             exo_used=exorcism, hs_used=shock, aow=art_of_war, infusion=infusion)
+                                             exo_used=exorcism, hs_used=shock, aow=art_of_war, infusion=infusion, ds=ds,
+                                             cs=cs)
 
     holy_shock_cd = (30 * mult_toggler(art_of_war, 0)
                      + exo_hs_cd_sim[1] * mult_toggler(not art_of_war, 0))
@@ -622,13 +690,17 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     reduction_coefficient = 1 - glance_reduction
     glance_c = glance_chance * reduction_coefficient + (1 - glance_chance)
 
+    auto_table_coefficient = auto_attack_table_coefficient(miss=melee_miss_chance, parry=boss_parry,
+                                                           glancing=glance_chance, crit=melee_crit,
+                                                           skill_bonus=skill_bonus, dodge=boss_dodge)
+
     wf_cd = 1.5
 
     # procs per per sec
     wf_proc_chance = 0.2
     wf_pps = min(
-        wf_proc_chance * (1 / melee_cd + 1 / divine_storm_cd + add_toggler(seal == "soc", 1 / judge_cd) + 
-                          add_toggler(cs, 1/cs_cd)),
+        wf_proc_chance * (1 / melee_cd + add_toggler(ds, 1 / divine_storm_cd) + add_toggler(seal == "soc", 1 / judge_cd)
+                          + add_toggler(cs, 1/cs_cd)),
         wf_cd)
 
     soc_p = 7 / 60 * weapon_speed
@@ -642,10 +714,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     seal_proc_chance = (add_toggler(seal == "sor", 1) + add_toggler(seal == "som", 1) +
                         add_toggler(seal == "soc", soc_p))
 
-    needle_proc_chance = 0.20
+    needle_proc_chance = 0.182
     needle_pps = (1 + seal_proc_chance) * needle_proc_chance / melee_cd
-
-    # weapon_special_pps = add_toggler(needle, needle_pps) do wep procs proc seal?!
 
     # damage
     sanctity_c = mult_toggler(sanctity_aura, 1.1)
@@ -662,7 +732,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     special_melee = special_melee_hit(ap=ap, weapon_max=weapon_max, weapon_min=weapon_min,
                                       wep_enchant_bonus=weapon_enchant_bonus, handedness=handedness)
 
-    melee = base_melee * evasion_c * armor_c * glance_c * melee_crit_c * two_hand_spec_c * vengeance_c
+    melee = base_melee * auto_table_coefficient * armor_c * two_hand_spec_c * vengeance_c
 
     wf_hit = melee + 0.2 * ap * weapon_speed / 14 * evasion_c * melee_crit_c * glance_c * two_hand_spec_c * vengeance_c
     wf_dps = wf_pps * wf_hit * mult_toggler(not wf, 0)
@@ -674,8 +744,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     exorcism_dps = (mult_toggler(not exorcism, 0) * exorcism_dmg(sp) / exorcism_cd * spell_crit_c * spell_miss_c
                     * sanctity_c * vengeance_c)
 
-    cs_damage = 0.75 * melee
-    cs_dps = cs_damage / cs_cd * mult_toggler(not cs, 0)
+    cs_damage = 0.75 * special_melee
+    cs_dps = cs_damage / cs_cd * mult_toggler(not cs, 0) * vengeance_c * sanctity_c * two_hand_spec_c
 
     holy_shock_damage = holy_shock(sp) * spell_miss_c * spell_crit_c
     holy_shock_dps_without_df = holy_shock_damage / holy_shock_cd
@@ -689,21 +759,12 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
         holy_shock_dps = (holy_shock_dps_without_df * mult_toggler(not shock, 0) * sanctity_c * vengeance_c
                           * infusion_c)
 
-    sor_seal_three_dmg = sor_seal_three(speed=weapon_speed, sp=sp, imp_sor=imp_sor, handedness=handedness) * evasion_c
-    sor_judge_three_dmg = sor_judge_three(sp=sp, imp_sor=imp_sor) * spell_crit_c * spell_miss_c
+    sor_seal_dmg = sor_seal(speed=weapon_speed, sp=sp, imp_sor=imp_sor, handedness=handedness) * evasion_c
+    sor_judge_dmg = sor_judge(sp=sp, imp_sor=imp_sor) * spell_crit_c * spell_miss_c
 
-    sor_seal_three_dps = sor_seal_three_dmg * (1 / melee_cd + wf_pps) * sanctity_c * vengeance_c
-    sor_judge_three_dps = sor_judge_three_dmg / judge_cd * sanctity_c * vengeance_c
-    sor_three_dps = sor_seal_three_dps + sor_judge_three_dps
-
-    sor_seal_five_dmg = sor_seal_five(speed=weapon_speed, sp=sp, imp_sor=imp_sor, handedness=handedness) * evasion_c
-    sor_judge_five_dmg = sor_judge_five(sp=sp, imp_sor=imp_sor) * spell_crit_c * spell_miss_c
-
-    sor_seal_five_dps = sor_seal_five_dmg * (1 / melee_cd + wf_pps) * sanctity_c * vengeance_c
-    sor_judge_five_dps = sor_judge_five_dmg / judge_cd * sanctity_c * vengeance_c
-    sor_five_dps = sor_seal_five_dps + sor_judge_five_dps
-
-    sor_dps = max(sor_three_dps, sor_five_dps) * seal_enabler("sor", seal)
+    sor_seal_dps = sor_seal_dmg * (1 / melee_cd + wf_pps) * sanctity_c * vengeance_c
+    sor_judge_dps = sor_judge_dmg / judge_cd * sanctity_c * vengeance_c
+    sor_dps = sor_seal_dps + sor_judge_dps * seal_enabler("sor", seal)
 
     soc_seal_dmg = (soc_seal(melee=base_melee, neutral_sp=neutral_sp, holy_sp=holy_sp) * evasion_c * melee_crit_c *
                     two_hand_spec_c)
@@ -714,7 +775,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 
     soc_dps = (soc_judge_dps + soc_seal_dps) * seal_enabler("soc", seal)
 
-    som_seal_dmg = som_seal(melee=base_melee) * evasion_c * melee_crit_c * two_hand_spec_c
+    som_seal_dmg = som_seal(melee=special_melee) * evasion_c * melee_crit_c * two_hand_spec_c
     som_judge_dmg = som_judge(melee=base_melee) * melee_crit_c * spell_miss_c
 
     som_seal_dps = som_seal_dmg * (1 / melee_cd + wf_pps) * sanctity_c * vengeance_c
@@ -728,11 +789,11 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     ret_aura_damage = 12 * mult_toggler(imp_ret, 1.5)
     ret_aura_dps = ret_aura_damage / boss_speed * mult_toggler(not ret_aura, 0) * sanctity_c * vengeance_c
 
-    needle_dmg = (25 + 35) / 2 + 0.05 * sp
+    needle_dmg = ((25 + 35) / 2 + 0.05 * sp) * spell_crit_c * spell_miss_c
     needle_dps = needle_dmg * needle_pps * mult_toggler(not needle, 0)
 
-    holy_dps = exorcism_dps + cons_dps + som_dps + soc_dps + sor_dps + ret_aura_dps + holy_shock_dps + needle_dps
-    non_holy_dps = divine_storm_dps + melee_dps + cs_dps
+    holy_dps = (exorcism_dps + cons_dps + som_dps + soc_dps + sor_dps + ret_aura_dps + holy_shock_dps + cs_dps)
+    non_holy_dps = divine_storm_dps + melee_dps + needle_dps
 
     # heal
     ds_heal = divine_storm_heal(melee=special_melee)
@@ -742,13 +803,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     judge_mana = 20
     judge_mps = judge_mana / judge_cd
 
-    sor_three_mana = 60
-    sor_five_mana = 120
-
-    if down_ranked(sor_three_dps, sor_five_dps):
-        sor_mana = sor_three_mana
-    else:
-        sor_mana = sor_five_mana
+    sor_mana = 120
     sor_mps = sor_mana / judge_cd * seal_enabler("sor", seal)
 
     soc_mana = 140
@@ -827,12 +882,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
         if cons:
             print(f"Consecration: {round(cons_dps, ndigits=1)}")
         if seal == "sor":
-            if sor_three_dps > sor_five_dps:
-                print(f"SoR3 Seal: {round(sor_seal_three_dps, ndigits=1)}")
-                print(f"SoR3 Judge: {round(sor_judge_three_dps, ndigits=1)}")
-            else:
-                print(f"SoR5 Seal: {round(sor_seal_five_dps, ndigits=1)}")
-                print(f"SoR5 Judge: {round(sor_judge_five_dps, ndigits=1)}")
+            print(f"SoR Seal: {round(sor_seal_dps, ndigits=1)}")
+            print(f"SoR Judge: {round(sor_judge_dps, ndigits=1)}")
         if seal == "soc":
             print(f"SoC Seal: {round(soc_seal_dps, ndigits=1)}")
             print(f"SoC Judge: {round(soc_judge_dps, ndigits=1)}")
@@ -883,21 +934,20 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   cs=Crusader_Strike, rf=Righteous_Fury)
 
 # build name
-Build_Name = "Holy Prot with BFD Hammer"
+Build_Name = "Holy Prot with BFD Hammer with SoR5 and AoW"
 # talent toggles
 # holy
-Improved_SoR = False
+Improved_SoR = True
 Improved_BoW = False
 Divine_Strength = True
-Divine_Intellect = True
+Divine_Intellect = False
 Holy_Power = False
 # prot
 Precision = True
 Improved_RF = True
 # ret
 Conviction_Points = 0  # 0 to 5
-Improved_Judge = True
-Improved_Crusader = False
+Improved_Judge = True 
 Deflection = False
 Benediction = True
 Improved_Ret_Aura = False
@@ -910,7 +960,7 @@ Hand_Of_Reckoning = True
 Crusader_Strike = False
 Consecration = True
 Seal = "sor"  # sor, soc or som
-Divine_Storm = False
+Divine_Storm = True
 Exorcism = True
 Holy_Shock = False
 Divine_Favor = False
@@ -926,7 +976,7 @@ Art_Of_War = True
 Weapon_Min = 17
 Weapon_Max = 32
 Weapon_Speed = 1.3
-Weapon_Enchant_Bonus = 3
+Weapon_Enchant_Bonus = 0
 
 Weapon_Strength = 0
 Weapon_Intellect = 0
