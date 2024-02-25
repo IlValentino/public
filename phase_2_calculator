@@ -1,22 +1,22 @@
 import random
 
 # build name
-Build_Name = "Holy Prot with needle and SoR and AoW"
+Build_Name = "Deep Holy with needle and SoR and AoW"
 # talent toggles
 # holy
-Improved_SoR = False
-Improved_BoW = False
+Improved_SoR = True
+Improved_BoW = True
 Divine_Strength = True
-Divine_Intellect = True
-Holy_Power = False
+Divine_Intellect = False
+Holy_Power = True
 # prot
-Precision = True
-Improved_RF = True
+Precision = False
+Improved_RF = False
 # ret
 Conviction_Points = 0  # 0 to 5
-Improved_Judge = True
+Improved_Judge = False
 Deflection = 0  # 0 to 5
-Benediction = True
+Benediction = False
 Improved_Ret_Aura = False
 Two_Hand_Spec = False
 Vengeance = False
@@ -29,8 +29,8 @@ Consecration = True
 Seal = "sor"  # sor, soc or som
 Divine_Storm = True
 Exorcism = True
-Holy_Shock = False
-Divine_Favor = False
+Holy_Shock = True
+Divine_Favor = True
 Ret_Aura = True
 
 Sheath = True
@@ -875,13 +875,13 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     consecration_mps = consecration_mana / cons_cd * mult_toggler(not cons, 0)
 
     exorcism_mana = 180
-    exorcism_mps = exorcism_mana / exorcism_cd * mult_toggler(not exorcism, 0)
+    exorcism_mps = exorcism_mana / exorcism_cd * mult_toggler(not exorcism, 0) * mult_toggler(art_of_war, 0.2)
 
     ds_mana = 0.12 * base_mana
     ds_mps = ds_mana / divine_storm_cd * mult_toggler(not ds, 0)
 
     holy_shock_mana = 225
-    holy_shock_mps = holy_shock_mana / holy_shock_cd * mult_toggler(not shock, 0)
+    holy_shock_mps = holy_shock_mana / holy_shock_cd * mult_toggler(not shock, 0) * mult_toggler(art_of_war, 0.2)
 
     divine_favor_mana = 0.04 * base_mana
     divine_favor_mps = divine_favor_mana / divine_favor_cd * mult_toggler(not divine_favor, 0)
@@ -991,22 +991,22 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   cs=Crusader_Strike, rf=Righteous_Fury)
 
 # build name
-Build_Name = "Holy Prot with BFD Hammer with SoR and AoW"
+Build_Name = "Deep Holy with BFD Hammer with SoR and AoW"
 # talent toggles
 # holy
 Improved_SoR = True
-Improved_BoW = False
+Improved_BoW = True
 Divine_Strength = True
 Divine_Intellect = False
-Holy_Power = False
+Holy_Power = True
 # prot
-Precision = True
-Improved_RF = True
+Precision = False
+Improved_RF = False
 # ret
 Conviction_Points = 0  # 0 to 5
-Improved_Judge = True
+Improved_Judge = False
 Deflection = False
-Benediction = True
+Benediction = False
 Improved_Ret_Aura = False
 Two_Hand_Spec = False
 Vengeance = False
@@ -1019,8 +1019,8 @@ Consecration = True
 Seal = "sor"  # sor, soc or som
 Divine_Storm = True
 Exorcism = True
-Holy_Shock = False
-Divine_Favor = False
+Holy_Shock = True
+Divine_Favor = True
 Ret_Aura = True
 
 Sheath = True
