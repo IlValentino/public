@@ -1,7 +1,7 @@
 import random
 
 # build name
-Build_Name = "Holy Prot with BFD Hammer with SoM and AoW"
+Build_Name = "Holy Prot with needle and SoR and AoW"
 # talent toggles
 # holy
 Improved_SoR = False
@@ -26,8 +26,8 @@ Righteous_Fury = True
 Hand_Of_Reckoning = True
 Crusader_Strike = False
 Consecration = True
-Seal = "som"  # sor, soc or som
-Divine_Storm = False
+Seal = "sor"  # sor, soc or som
+Divine_Storm = True
 Exorcism = True
 Holy_Shock = False
 Divine_Favor = False
@@ -40,9 +40,9 @@ Guarded_By_Light = False
 Art_Of_War = True
 
 # weapon values
-Weapon_Min = 17
-Weapon_Max = 32
-Weapon_Speed = 1.3
+Weapon_Min = 41
+Weapon_Max = 75
+Weapon_Speed = 1.7
 Weapon_Enchant_Bonus = 0
 
 Weapon_Strength = 0
@@ -52,7 +52,7 @@ Weapon_Agility = 0
 Handedness = 1  # 1 or 2
 Racial_Bonus = True
 
-Gnomer_Needle_Proc = False  # activates the proc of the 1h epic
+Gnomer_Needle_Proc = True  # activates the proc of the 1h epic
 ACP_ON_USE = False  # activates automatic crowd pummeler cd
 
 # non-weapon gear stat values
@@ -62,7 +62,7 @@ Gear_Intellect = 0
 
 # use total value stat input instead (overrides wep+gear stats)
 Use_Total_Stats = True  # toggle this to use insert total stats (both gear and base at once)
-Total_Str = 205 + 3
+Total_Str = 205
 Total_Agi = 90
 Total_Int = 51
 
@@ -276,6 +276,23 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
                         hs_on_cd = False
                         hs_cd_timer = 0
 
+        if not judge_on_cd and not on_gcd and seal != "som":
+            judge_on_cd = True
+            judge_timer = judge_cd
+
+            on_gcd = True
+            gcd_timer = gcd
+
+            judge_counter += 1
+
+            if chance(crit_chance) and aow_judge_proc and seal != "sor" and aow:
+                if exo_on_cd and exo_used:
+                    exo_on_cd = False
+                    exo_cd_timer = 0
+                if hs_on_cd and hs_used:
+                    hs_on_cd = False
+                    hs_cd_timer = 0
+
         if not ds_on_cd and not on_gcd and ds_used:
             ds_on_cd = True
             ds_timer = ds_cd
@@ -310,7 +327,7 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
                     hs_on_cd = False
                     hs_cd_timer = 0
 
-        if not judge_on_cd and not on_gcd:
+        if not judge_on_cd and not on_gcd and seal == "som":
             judge_on_cd = True
             judge_timer = judge_cd
 
@@ -974,7 +991,7 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   cs=Crusader_Strike, rf=Righteous_Fury)
 
 # build name
-Build_Name = "Holy Prot with BFD Hammer with SoR5 and AoW"
+Build_Name = "Holy Prot with BFD Hammer with SoR and AoW"
 # talent toggles
 # holy
 Improved_SoR = True
