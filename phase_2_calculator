@@ -114,7 +114,7 @@ Base_Strength = 70
 Base_Intellect = 49
 Boss_Level = 42
 Player_Level = 40
-Melee_Crit_Per_Agi = (1/14) / 100
+Melee_Crit_Per_Agi = (1 / 14) / 100
 Base_Melee_Crit = 0.6 / 100
 Base_Agi = 46
 
@@ -182,7 +182,7 @@ def toggle_checker(bom, horn, aow, guarded, infusion, sheath, seal, extra_hit, e
 
 # art of war sim
 def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal, exo_used, hs_used, aow, infusion, wf,
-                             ds, cs):
+                             ds_used, cs_used, cons_used):
     crit_chance = melee_crit
 
     gcd = 1.5
@@ -213,8 +213,16 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
     cs_on_cd = False
     cs_timer = 0
 
+    cons_cd = 8
+    cons_on_cd = False
+    cons_timer = 0
+
     exorcism_counter = 0
     holy_shock_counter = 0
+    judge_counter = 0
+    cs_counter = 0
+    ds_counter = 0
+    cons_counter = 0
 
     t = 0
     target_time = 10 ** 5
@@ -268,12 +276,14 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
                         hs_on_cd = False
                         hs_cd_timer = 0
 
-        if not ds_on_cd and not on_gcd and ds:
+        if not ds_on_cd and not on_gcd and ds_used:
             ds_on_cd = True
             ds_timer = ds_cd
 
             on_gcd = True
             gcd_timer = gcd
+
+            ds_counter += 1
 
             if chance(crit_chance) and aow:
                 if exo_on_cd and exo_used:
@@ -283,12 +293,14 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
                     hs_on_cd = False
                     hs_cd_timer = 0
 
-        if not cs_on_cd and not on_gcd and cs:
+        if not cs_on_cd and not on_gcd and cs_used:
             cs_on_cd = True
             cs_timer = cs_cd
 
             on_gcd = True
             gcd_timer = gcd
+
+            cs_counter += 1
 
             if chance(crit_chance) and aow:
                 if exo_on_cd and exo_used:
@@ -305,6 +317,8 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
             on_gcd = True
             gcd_timer = gcd
 
+            judge_counter += 1
+
             if chance(crit_chance) and aow_judge_proc and seal != "sor" and aow:
                 if exo_on_cd and exo_used:
                     exo_on_cd = False
@@ -312,6 +326,15 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
                 if hs_on_cd and hs_used:
                     hs_on_cd = False
                     hs_cd_timer = 0
+
+        if not cons_on_cd and not on_gcd and cons_used:
+            cons_on_cd = True
+            cons_timer = cons_cd
+
+            on_gcd = True
+            gcd_timer = gcd
+
+            cons_counter += 1
 
         if exo_on_cd:
             exo_cd_timer = round(exo_cd_timer - 0.1, ndigits=1)
@@ -348,6 +371,11 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
             if cs_timer == 0:
                 cs_on_cd = False
 
+        if cons_on_cd:
+            cons_timer = round(cons_timer - 0.1, ndigits=1)
+            if cons_timer == 0:
+                cons_on_cd = False
+
         t = round(t + 0.1, ndigits=1)
 
         if t == target_time:
@@ -361,7 +389,22 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
         new_hs_cd = t / holy_shock_counter
     else:
         new_hs_cd = hs_cd
-    return [new_exo_cd, new_hs_cd]
+    if cs_used:
+        new_cs_cd = t / cs_counter
+    else:
+        new_cs_cd = cs_cd
+    if ds_used:
+        new_ds_cd = t / ds_counter
+    else:
+        new_ds_cd = ds_cd
+    if cons_used:
+        new_cons_cd = t / cons_counter
+    else:
+        new_cons_cd = cons_cd
+    new_judge_cd = t / judge_counter
+
+    return {"new_exo_cd": new_exo_cd, "new_hs_cd": new_hs_cd, "new_judge_cd": new_judge_cd, "new_ds_cd": new_ds_cd,
+            "new_cs_cd": new_cs_cd, "new_cons_cd": new_cons_cd}
 
 
 # mechanics functions
@@ -487,15 +530,15 @@ def auto_attack_table_coefficient(miss, dodge, parry, glancing, crit, skill_bonu
     if new_miss + new_dodge + parry <= 1:
         new_parry = parry
     else:
-        new_parry = 1 - (new_miss+new_dodge)
+        new_parry = 1 - (new_miss + new_dodge)
     if new_miss + new_dodge + new_parry + glancing <= 1:
         new_glancing = glancing
     else:
-        new_glancing = 1 - (new_miss+new_dodge+new_parry)
+        new_glancing = 1 - (new_miss + new_dodge + new_parry)
     if new_miss + new_dodge + new_parry + new_glancing + crit <= 1:
         new_crit = crit
     else:
-        new_crit = 1 - (new_miss+new_dodge+new_parry+new_glancing)
+        new_crit = 1 - (new_miss + new_dodge + new_parry + new_glancing)
 
     new_normal = 1 - (new_miss + new_dodge + new_parry + new_glancing + new_crit)
 
@@ -651,27 +694,24 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     base_melee_cd = 1 / melee_pps
     melee_cd = base_melee_cd * mult_toggler(wb, 1 / 1.1) * mult_toggler(acp_cd, 1 / 1.5)
 
-    cons_cd = 8
+    cd_sim = aow_infusion_expected_cd(speed=melee_cd, melee_crit=melee_crit, imp_judge=imp_judge, wf=wf,
+                                      aow_judge_proc=aow_judge_proc, seal=seal,
+                                      exo_used=exorcism, hs_used=shock, aow=art_of_war, infusion=infusion,
+                                      ds_used=ds, cs_used=cs, cons_used=cons)
 
-    cs_cd = 6
+    cons_cd = cd_sim.get("new_cons_cd")
 
-    exo_hs_cd_sim = aow_infusion_expected_cd(speed=melee_cd, melee_crit=melee_crit,
-                                             imp_judge=imp_judge, wf=wf,
-                                             aow_judge_proc=aow_judge_proc, seal=seal,
-                                             exo_used=exorcism, hs_used=shock, aow=art_of_war, infusion=infusion, ds=ds,
-                                             cs=cs)
+    cs_cd = cd_sim.get("new_cs_cd")
 
-    holy_shock_cd = (30 * mult_toggler(art_of_war, 0)
-                     + exo_hs_cd_sim[1] * mult_toggler(not art_of_war, 0))
+    holy_shock_cd = cd_sim.get("new_hs_cd")
 
-    exorcism_cd = (15 * mult_toggler(art_of_war, 0)
-                   + exo_hs_cd_sim[0] * mult_toggler(not art_of_war, 0))
+    exorcism_cd = cd_sim.get("new_exo_cd")
 
     divine_favor_cd = 30 * 4
 
-    divine_storm_cd = 10
+    divine_storm_cd = cd_sim.get("new_ds_cd")
 
-    judge_cd = 10 - add_toggler(imp_judge, 2)
+    judge_cd = cd_sim.get("new_judge_cd")
 
     # boss mitigation
     melee_miss_chance = melee_miss_prob(boss_level=Boss_Level, player_level=Player_Level, skill_bonus=skill_bonus,
@@ -700,7 +740,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     wf_proc_chance = 0.2
     wf_pps = min(
         wf_proc_chance * (1 / melee_cd + add_toggler(ds, 1 / divine_storm_cd) + add_toggler(seal == "soc", 1 / judge_cd)
-                          + add_toggler(cs, 1/cs_cd)),
+                          + add_toggler(cs, 1 / cs_cd)),
         wf_cd)
 
     soc_p = 7 / 60 * weapon_speed
