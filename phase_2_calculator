@@ -1,22 +1,21 @@
 import random
 
 # build name
-Build_Name = "Deep Holy with needle and SoR and AoW"
+Build_Name = "Holy Prot with BFD hammer and SoR and AoW"
 # talent toggles
 # holy
 Improved_SoR = True
-Improved_BoW = True
 Divine_Strength = True
 Divine_Intellect = False
-Holy_Power = True
+Holy_Power = False
 # prot
-Precision = False
-Improved_RF = False
+Precision = True
+Improved_RF = True
 # ret
 Conviction_Points = 0  # 0 to 5
-Improved_Judge = False
+Improved_Judge = True
 Deflection = 0  # 0 to 5
-Benediction = False
+Benediction = True
 Improved_Ret_Aura = False
 Two_Hand_Spec = False
 Vengeance = False
@@ -29,9 +28,8 @@ Consecration = True
 Seal = "sor"  # sor, soc or som
 Divine_Storm = True
 Exorcism = True
-Holy_Shock = True
-Divine_Favor = True
-Ret_Aura = True
+Holy_Shock = False
+Divine_Favor = False
 
 Sheath = True
 Infusion = False
@@ -40,9 +38,9 @@ Guarded_By_Light = False
 Art_Of_War = True
 
 # weapon values
-Weapon_Min = 41
-Weapon_Max = 75
-Weapon_Speed = 1.7
+Weapon_Min = 17
+Weapon_Max = 32
+Weapon_Speed = 1.3
 Weapon_Enchant_Bonus = 0
 
 Weapon_Strength = 0
@@ -52,7 +50,7 @@ Weapon_Agility = 0
 Handedness = 1  # 1 or 2
 Racial_Bonus = True
 
-Gnomer_Needle_Proc = True  # activates the proc of the 1h epic
+Gnomer_Needle_Proc = False  # activates the proc of the 1h epic
 ACP_ON_USE = False  # activates automatic crowd pummeler cd
 
 # non-weapon gear stat values
@@ -62,15 +60,15 @@ Gear_Intellect = 0
 
 # use total value stat input instead (overrides wep+gear stats)
 Use_Total_Stats = True  # toggle this to use insert total stats (both gear and base at once)
-Total_Str = 205
-Total_Agi = 90
+Total_Str = 221 + 3
+Total_Agi = 97
 Total_Int = 51
 
 # bonus stats
-Gear_AP = 16
+Gear_AP = 32
 Bonus_SP = 0
 Bonus_Holy_SP = 0
-Bonus_Crit = 3 / 100  # as decimal
+Bonus_Crit = 2 / 100  # as decimal
 Bonus_Skill = 0
 Bonus_Hit = 2 / 100  # as decimal
 
@@ -85,13 +83,17 @@ BoM = False
 Horn = True
 
 Sanctity_Aura = True
+Ret_Aura = True
 WB = True
 Battle_Shout = True
 WF = True
-Judge_Of_Crusader = True
-Improved_Crusader = True
+Judge_Of_Crusader = False
+Improved_Crusader = False
 Arcane_Intellect = True
+
 BoW = True
+Improved_BoW = False
+
 Judge_Of_Wisdom = True
 MoW = True
 LotP = False
@@ -99,7 +101,7 @@ LotP = False
 # boss values (choose what boss is doing)
 Boss_Dodge = 6 / 100  # as decimal
 Boss_Parry = 4 / 100  # as decimal
-Boss_Armor_Mitigation = 30 / 100  # as decimal
+Boss_Armor_Mitigation = 33 / 100  # as decimal
 Enemy_Speed = 2
 
 # settings
@@ -991,22 +993,21 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   cs=Crusader_Strike, rf=Righteous_Fury)
 
 # build name
-Build_Name = "Deep Holy with BFD Hammer with SoR and AoW"
+Build_Name = "Holy Prot with BFD hammer with SoM and AoW"
 # talent toggles
 # holy
-Improved_SoR = True
-Improved_BoW = True
+Improved_SoR = False
 Divine_Strength = True
-Divine_Intellect = False
-Holy_Power = True
+Divine_Intellect = True
+Holy_Power = False
 # prot
-Precision = False
-Improved_RF = False
+Precision = True
+Improved_RF = True
 # ret
 Conviction_Points = 0  # 0 to 5
-Improved_Judge = False
-Deflection = False
-Benediction = False
+Improved_Judge = True
+Deflection = 0  # 0 to 5
+Benediction = True
 Improved_Ret_Aura = False
 Two_Hand_Spec = False
 Vengeance = False
@@ -1016,12 +1017,13 @@ Righteous_Fury = True
 Hand_Of_Reckoning = True
 Crusader_Strike = False
 Consecration = True
-Seal = "sor"  # sor, soc or som
-Divine_Storm = True
+
+Seal = "som"  # sor, soc or som
+Divine_Storm = False
+
 Exorcism = True
-Holy_Shock = True
-Divine_Favor = True
-Ret_Aura = True
+Holy_Shock = False
+Divine_Favor = False
 
 Sheath = True
 Infusion = False
@@ -1051,16 +1053,16 @@ Gear_Agi = 0  # before buff, weapon stats
 Gear_Intellect = 0
 
 # total value input instead if chosen at start
-Total_Str = 205 + 3
-Total_Agi = 90
+Total_Str = 221 + 3
+Total_Agi = 97
 Total_Int = 51
 
 # bonus stats
-Gear_AP = 16
+Gear_AP = 32
 Bonus_SP = 0
 Bonus_Holy_SP = 0
 Bonus_Skill = 0
-Bonus_Crit = 3 / 100  # as decimal
+Bonus_Crit = 2 / 100  # as decimal
 Bonus_Hit = 2 / 100  # as decimal
 
 # values to be estimated
