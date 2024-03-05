@@ -573,7 +573,7 @@ def auto_attack_table_coefficient(miss, dodge, parry, glancing, crit, skill_bonu
 
     new_normal = 1 - (new_miss + new_dodge + new_parry + new_glancing + new_crit)
 
-    output = new_crit * 2 + new_normal + new_glancing * (1-glance_reduction_func(Boss_Level, Player_Level, skill_bonus)) 
+    output = new_crit * 2 + new_normal + new_glancing * (1-glance_reduction_func(Boss_Level, Player_Level, skill_bonus))
 
     return output
 
@@ -947,16 +947,17 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     print(f"Time until oom: {time_until_oom}")
     print()
     if Extended_Details:
-        print("DPS Values")
+        print("DPS Values // Average DMG Per Cast")
         print(f"Melee: {round(melee_dps, ndigits=1)} // "
               f"({round((auto_melee/melee_cd+wf_hit*wf_pps)/(1/melee_cd+wf_pps), ndigits=1)})")
         if cons:
             print(f"Consecration: {round(cons_dps, ndigits=1)} // "
-                  f"({round(cons_damage / 8, ndigits=1)})")
+                  f"({round(cons_dps*cons_cd, ndigits=1)})")
         if seal == "sor":
-            print(f"SoR Seal: {round(sor_seal_dps, ndigits=1)} // ({round(sor_seal_dmg, ndigits=1)})")
+            print(f"SoR Seal: {round(sor_seal_dps, ndigits=1)} // "
+                  f"({round(sor_seal_dps/(1/melee_cd+wf_pps), ndigits=1)})")
             print(f"SoR Judge: {round(sor_judge_dps, ndigits=1)} // "
-                  f"({round(sor_judge_dmg, ndigits=1)})")
+                  f"({round(sor_judge_dps*judge_cd, ndigits=1)})")
         if seal == "soc":
             print(f"SoC Seal: {round(soc_seal_dps, ndigits=1)}")
             print(f"SoC Judge: {round(soc_judge_dps, ndigits=1)}")
