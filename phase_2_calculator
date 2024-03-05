@@ -99,9 +99,9 @@ MoW = True
 LotP = False
 
 # boss values (choose what boss is doing)
-Boss_Dodge = 6 / 100  # as decimal
-Boss_Parry = 4 / 100  # as decimal
-Boss_Armor_Mitigation = 33 / 100  # as decimal
+Boss_Dodge = 5.5 / 100  # as decimal
+Boss_Parry = 5.5 / 100  # as decimal
+Boss_Armor = 4000 
 Enemy_Speed = 2
 
 # settings
@@ -429,6 +429,10 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
 
 
 # mechanics functions
+def armor_mitig(armor, attacker_level):
+    return armor/(armor+400+85*attacker_level)
+
+
 def glance_prob(boss_level, player_level, skill_bonus):
     boss_defense = 5 * boss_level
     base_weapon_skill = 5 * player_level
@@ -523,10 +527,7 @@ def armor_coefficient(armor_mitigation):
 
 
 def evasion_coefficient(enemy_dodge_chance, enemy_parry_chance, miss_chance):
-    dodge_coefficient = 1 - enemy_dodge_chance
-    parry_coefficient = 1 - enemy_parry_chance
-    miss_coefficient = 1 - miss_chance
-    return dodge_coefficient * parry_coefficient * miss_coefficient
+    return 1 - enemy_dodge_chance - enemy_parry_chance - miss_chance
 
 
 def melee_crit_chance(extra_crit, agi, conviction_points, leader):
@@ -664,7 +665,7 @@ def divine_storm_heal(melee):
 def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_rf, imp_judge, art_of_war,
                       conviction_points, cons, seal, gear_strength, gear_ap, kings, bom, battle_shout, divine_strength,
                       bonus_sp, sheath, weapon_enchant_bonus, weapon_min, weapon_max, extra_crit, precision, boss_dodge,
-                      boss_parry, armor_mitigation, ds, name, ret_aura, boss_speed, wf,
+                      boss_parry, boss_armor, ds, name, ret_aura, boss_speed, wf,
                       deflection, base_parry, exorcism, shock, crusader_judge, bonus_holy_sp, weapon_str, benediction,
                       guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor,
                       divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance, racial,
@@ -751,14 +752,12 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     evasion_c = evasion_coefficient(enemy_dodge_chance=boss_dodge, enemy_parry_chance=boss_parry,
                                     miss_chance=melee_miss_chance)
 
+    armor_mitigation = armor_mitig(armor=boss_armor, attacker_level=Player_Level)
     armor_c = armor_coefficient(armor_mitigation=armor_mitigation)
 
     spell_miss_c = 1 - spell_miss_chance
 
     glance_chance = 0.3
-    glance_reduction = glance_reduction_func(boss_level=Boss_Level, player_level=Player_Level, skill_bonus=skill_bonus)
-    reduction_coefficient = 1 - glance_reduction
-    glance_c = glance_chance * reduction_coefficient + (1 - glance_chance)
 
     auto_table_coefficient = auto_attack_table_coefficient(miss=melee_miss_chance, parry=boss_parry,
                                                            glancing=glance_chance, crit=melee_crit,
@@ -804,7 +803,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
 
     auto_melee = base_melee * auto_table_coefficient * armor_c * two_hand_spec_c * vengeance_c
 
-    wf_hit = (auto_melee + 0.2 * ap * weapon_speed / 14 * evasion_c * melee_crit_c * glance_c * two_hand_spec_c
+    wf_hit = (auto_melee + 0.2 * ap * weapon_speed / 14 * auto_table_coefficient * armor_c * two_hand_spec_c
               * vengeance_c)
     wf_dps = wf_pps * wf_hit * mult_toggler(not wf, 0)
 
@@ -949,7 +948,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     print()
     if Extended_Details:
         print("DPS Values")
-        print(f"Melee: {round(melee_dps, ndigits=1)} // ({round(auto_melee * melee_cd, ndigits=1)})")
+        print(f"Melee: {round(melee_dps, ndigits=1)} // "
+              f"({round((auto_melee/melee_cd+wf_hit*wf_pps)/(1/melee_cd+wf_pps), ndigits=1)})")
         if cons:
             print(f"Consecration: {round(cons_dps, ndigits=1)} // "
                   f"({round(cons_damage / 8, ndigits=1)})")
@@ -997,7 +997,7 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   gear_ap=Gear_AP, kings=Kings, bom=BoM, battle_shout=Battle_Shout, divine_strength=Divine_Strength,
                   bonus_sp=Bonus_SP, sheath=Sheath, weapon_enchant_bonus=Weapon_Enchant_Bonus, weapon_min=Weapon_Min,
                   weapon_max=Weapon_Max, extra_crit=Bonus_Crit, precision=Precision, boss_dodge=Boss_Dodge,
-                  boss_parry=Boss_Parry, armor_mitigation=Boss_Armor_Mitigation, ds=Divine_Storm,
+                  boss_parry=Boss_Parry, boss_armor=Boss_Armor, ds=Divine_Storm,
                   name=Build_Name, ret_aura=Ret_Aura, boss_speed=Enemy_Speed, wf=WF,
                   deflection=Deflection, base_parry=Base_Parry, exorcism=Exorcism, shock=Holy_Shock,
                   crusader_judge=Judge_Of_Crusader, bonus_holy_sp=Bonus_Holy_SP, weapon_str=Weapon_Strength,
@@ -1094,7 +1094,7 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   gear_ap=Gear_AP, kings=Kings, bom=BoM, battle_shout=Battle_Shout, divine_strength=Divine_Strength,
                   bonus_sp=Bonus_SP, sheath=Sheath, weapon_enchant_bonus=Weapon_Enchant_Bonus, weapon_min=Weapon_Min,
                   weapon_max=Weapon_Max, extra_crit=Bonus_Crit, precision=Precision, boss_dodge=Boss_Dodge,
-                  boss_parry=Boss_Parry, armor_mitigation=Boss_Armor_Mitigation, ds=Divine_Storm,
+                  boss_parry=Boss_Parry, boss_armor=Boss_Armor, ds=Divine_Storm,
                   name=Build_Name, ret_aura=Ret_Aura, boss_speed=Enemy_Speed, wf=WF,
                   deflection=Deflection, base_parry=Base_Parry, exorcism=Exorcism, shock=Holy_Shock,
                   crusader_judge=Judge_Of_Crusader, bonus_holy_sp=Bonus_Holy_SP, weapon_str=Weapon_Strength,
