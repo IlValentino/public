@@ -101,7 +101,7 @@ LotP = False
 # boss values (choose what boss is doing)
 Boss_Dodge = 5.5 / 100  # as decimal
 Boss_Parry = 5.5 / 100  # as decimal
-Boss_Armor = 4000 
+Boss_Armor = 4000
 Enemy_Speed = 2
 
 # settings
@@ -573,7 +573,7 @@ def auto_attack_table_coefficient(miss, dodge, parry, glancing, crit, skill_bonu
 
     new_normal = 1 - (new_miss + new_dodge + new_parry + new_glancing + new_crit)
 
-    output = new_crit * 2 + new_normal + new_glancing * glance_reduction_func(Boss_Level, Player_Level, skill_bonus)
+    output = new_crit * 2 + new_normal + new_glancing * (1-glance_reduction_func(Boss_Level, Player_Level, skill_bonus)) 
 
     return output
 
