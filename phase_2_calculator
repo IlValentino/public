@@ -62,15 +62,15 @@ Gear_Intellect = 0
 
 # use total value stat input instead (overrides wep+gear stats)
 Use_Total_Stats = True  # toggle this to use insert total stats (both gear and base at once)
-Total_Str = 221 + 3
-Total_Agi = 97
-Total_Int = 51
+Total_Str = 203 + 3
+Total_Agi = 79
+Total_Int = 56
 
 # bonus stats
-Gear_AP = 18 + 18 + 16 + 16
+Gear_AP = 18 + 16 + 16
 Bonus_SP = 0
-Bonus_Holy_SP = 0
-Bonus_Crit = 2 / 100  # as decimal
+Bonus_Holy_SP = 14
+Bonus_Crit = 1 / 100  # as decimal
 Bonus_Skill = 0
 Bonus_Hit = 2 / 100  # as decimal
 
@@ -81,13 +81,17 @@ Base_Parry = 5.28 / 100  # as decimal
 Kings = True
 
 BoM = True
+Imp_BoM = True
 
 Horn = False
 
 Sanctity_Aura = True
 Ret_Aura = False
 WB = True
+
 Battle_Shout = True
+Imp_Battle_Shout = True
+
 WF = True
 Judge_Of_Crusader = False
 Improved_Crusader = False
@@ -99,6 +103,9 @@ Improved_BoW = False
 Judge_Of_Wisdom = True
 MoW = True
 LotP = False
+
+Sunder_Armor = 5  # 0 to 5
+Fairy_Fire = True
 
 # boss values (choose what boss is doing)
 Boss_Dodge = 5.5 / 100  # as decimal
@@ -440,7 +447,8 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
 
 
 # mechanics functions
-def armor_mitig(armor, attacker_level):
+def armor_mitig(armor, attacker_level, sunder, fairy_fire):
+    armor = armor - sunder * 270 - add_toggler(fairy_fire, 285)
     return armor / (armor + 400 + 85 * attacker_level)
 
 
@@ -500,11 +508,12 @@ def max_mana(intellect):
     return mana
 
 
-def attack_power(strength, gear_ap, bom, battle_shout):
+def attack_power(strength, gear_ap, bom, battle_shout, imp_bom, imp_bs):
     level = 40
     class_ap = 3 * level - 20
 
-    output = 2 * strength + class_ap + gear_ap + add_toggler(bom, 85) + add_toggler(battle_shout, 94)
+    output = (2 * strength + class_ap + gear_ap + add_toggler(bom, 85 * mult_toggler(imp_bom, 1.2))
+              + add_toggler(battle_shout, 94 * mult_toggler(imp_bs, 1.25)))
 
     return output
 
@@ -682,7 +691,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
                       guarded, arcane, gear_int, bow, wis_judge, holy_power, imp_bow, divine_favor,
                       divine_int, handedness, imp_crusader, imp_ret, two_hand_spec, sanctity_aura, vengeance, racial,
                       extra_wep_skill, extra_hit, horn, mark, infusion, leader, wep_agi, wep_int, needle, total_agi,
-                      total_str, total_int, acp_cd, hor, cs, rf):
+                      total_str, total_int, acp_cd, hor, cs, rf, imp_bom, imp_bs, sunder, fairy_fire):
     # debugger
     toggle_checker(bom=bom, horn=horn, aow=art_of_war, guarded=guarded, infusion=infusion, sheath=sheath, seal=seal,
                    extra_crit=extra_crit, extra_hit=extra_hit, cs=cs, hor=hor)
@@ -709,7 +718,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
                                    leader=leader)
     melee_crit_c = crit_coefficient(crit_chance=melee_crit)
 
-    ap = attack_power(strength=strength, gear_ap=gear_ap, bom=bom, battle_shout=battle_shout)
+    ap = attack_power(strength=strength, gear_ap=gear_ap, bom=bom, battle_shout=battle_shout, imp_bom=imp_bom,
+                      imp_bs=imp_bs)
 
     holy_sp = add_toggler(crusader_judge, 80 * mult_toggler(imp_crusader, 1.15)) + bonus_holy_sp
     neutral_sp = neutral_spell_power(ap=ap, bonus_sp=bonus_sp, sheath=sheath, wb=wb)
@@ -764,7 +774,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     evasion_c = evasion_coefficient(enemy_dodge_chance=boss_dodge, enemy_parry_chance=boss_parry,
                                     miss_chance=melee_miss_chance)
 
-    armor_mitigation = armor_mitig(armor=boss_armor, attacker_level=Player_Level)
+    armor_mitigation = armor_mitig(armor=boss_armor, attacker_level=Player_Level, sunder=sunder, fairy_fire=fairy_fire)
     armor_c = armor_coefficient(armor_mitigation=armor_mitigation)
 
     spell_miss_c = 1 - spell_miss_chance
@@ -1028,7 +1038,8 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn, mark=MoW, infusion=Infusion, leader=LotP,
                   wep_agi=Weapon_Agility, wep_int=Weapon_Intellect, needle=Gnomer_Needle_Proc, total_int=Total_Int,
                   total_str=Total_Str, total_agi=Total_Agi, acp_cd=ACP_ON_USE, hor=Hand_Of_Reckoning,
-                  cs=Crusader_Strike, rf=Righteous_Fury)
+                  cs=Crusader_Strike, rf=Righteous_Fury, imp_bom=Imp_BoM, imp_bs=Imp_Battle_Shout, sunder=Sunder_Armor,
+                  fairy_fire=Fairy_Fire)
 
 # build name
 Build_Name = "Holy Prot with BFD hammer with SoM and AoW"
@@ -1125,4 +1136,5 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
                   extra_wep_skill=Bonus_Skill, extra_hit=Bonus_Hit, horn=Horn, mark=MoW, infusion=Infusion, leader=LotP,
                   wep_agi=Weapon_Agility, wep_int=Weapon_Intellect, needle=Gnomer_Needle_Proc, total_int=Total_Int,
                   total_str=Total_Str, total_agi=Total_Agi, acp_cd=ACP_ON_USE, hor=Hand_Of_Reckoning,
-                  cs=Crusader_Strike, rf=Righteous_Fury)
+                  cs=Crusader_Strike, rf=Righteous_Fury, imp_bom=Imp_BoM, imp_bs=Imp_Battle_Shout, sunder=Sunder_Armor,
+                  fairy_fire=Fairy_Fire)
