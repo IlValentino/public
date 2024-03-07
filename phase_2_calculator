@@ -1,5 +1,7 @@
 import random
 
+# latest update 07.03.2024
+
 # build name
 Build_Name = "Holy Prot with BFD hammer and SoR and AoW"
 # talent toggles
@@ -186,7 +188,7 @@ def toggle_checker(bom, horn, aow, guarded, infusion, sheath, seal, extra_hit, e
 
 # art of war sim
 def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal, exo_used, hs_used, aow, infusion, wf,
-                             ds_used, cs_used, cons_used):
+                             ds_used, cs_used, cons_used, weapon_speed):
     crit_chance = melee_crit
 
     gcd = 1.5
@@ -227,6 +229,8 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
     cs_counter = 0
     ds_counter = 0
     cons_counter = 0
+
+    soc_proc_chance = 7 / 60 * weapon_speed
 
     t = 0
     target_time = 10 ** 5
@@ -272,7 +276,14 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
                     if hs_on_cd and hs_used:
                         hs_on_cd = False
                         hs_cd_timer = 0
-                if chance(crit_chance) and aow and seal != "sor":
+                if chance(crit_chance) and aow and seal == "som":
+                    if exo_on_cd and exo_used:
+                        exo_on_cd = False
+                        exo_cd_timer = 0
+                    if hs_on_cd and hs_used:
+                        hs_on_cd = False
+                        hs_cd_timer = 0
+                if chance(crit_chance) and aow and seal == "soc" and chance(soc_proc_chance):
                     if exo_on_cd and exo_used:
                         exo_on_cd = False
                         exo_cd_timer = 0
@@ -430,7 +441,7 @@ def aow_infusion_expected_cd(speed, melee_crit, imp_judge, aow_judge_proc, seal,
 
 # mechanics functions
 def armor_mitig(armor, attacker_level):
-    return armor/(armor+400+85*attacker_level)
+    return armor / (armor + 400 + 85 * attacker_level)
 
 
 def glance_prob(boss_level, player_level, skill_bonus):
@@ -573,7 +584,8 @@ def auto_attack_table_coefficient(miss, dodge, parry, glancing, crit, skill_bonu
 
     new_normal = 1 - (new_miss + new_dodge + new_parry + new_glancing + new_crit)
 
-    output = new_crit * 2 + new_normal + new_glancing * (1-glance_reduction_func(Boss_Level, Player_Level, skill_bonus))
+    output = new_crit * 2 + new_normal + new_glancing * (
+                1 - glance_reduction_func(Boss_Level, Player_Level, skill_bonus))
 
     return output
 
@@ -626,12 +638,12 @@ def soc_judge_three(sp, in_cap):
     return base + scale
 
 
-def som_seal(melee):
-    return 0.4 * melee
+def som_seal(melee, imp_sor):
+    return 0.5 * melee * mult_toggler(imp_sor, 1.15)
 
 
-def som_judge(melee):
-    return 0.7 * melee
+def som_judge(melee, imp_sor):
+    return 0.85 * melee * mult_toggler(imp_sor, 1.15)
 
 
 # other abilities
@@ -728,7 +740,7 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     cd_sim = aow_infusion_expected_cd(speed=melee_cd, melee_crit=melee_crit, imp_judge=imp_judge, wf=wf,
                                       aow_judge_proc=aow_judge_proc, seal=seal,
                                       exo_used=exorcism, hs_used=shock, aow=art_of_war, infusion=infusion,
-                                      ds_used=ds, cs_used=cs, cons_used=cons)
+                                      ds_used=ds, cs_used=cs, cons_used=cons, weapon_speed=weapon_speed)
 
     cons_cd = cd_sim.get("new_cons_cd")
 
@@ -768,7 +780,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     # procs per per sec
     wf_proc_chance = 0.2
     wf_pps = min(
-        wf_proc_chance * (1 / melee_cd + add_toggler(ds, 1 / divine_storm_cd) + add_toggler(seal == "soc", 1 / judge_cd)
+        wf_proc_chance * (1 / melee_cd + add_toggler(ds, 1 / divine_storm_cd) +
+                          add_toggler(seal == "soc" or seal == "som", 1 / judge_cd)
                           + add_toggler(cs, 1 / cs_cd)),
         wf_cd)
 
@@ -844,9 +857,10 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     soc_judge_dps = soc_judge_dmg / judge_cd * seal_enabler("soc", seal)
     soc_dps = soc_judge_dps + soc_seal_dps
 
-    som_seal_dmg = (som_seal(melee=normal_base_melee) * evasion_c * melee_crit_c * two_hand_spec_c * sanctity_c
-                    * vengeance_c)
-    som_judge_dmg = som_judge(melee=base_melee) * melee_crit_c * spell_miss_c * sanctity_c * vengeance_c
+    som_seal_dmg = (som_seal(melee=normal_base_melee, imp_sor=imp_sor) * evasion_c * melee_crit_c * two_hand_spec_c
+                    * sanctity_c * vengeance_c)
+    som_judge_dmg = (som_judge(melee=base_melee, imp_sor=imp_sor) * melee_crit_c * spell_miss_c * sanctity_c
+                     * vengeance_c)
 
     som_seal_dps = som_seal_dmg * (1 / melee_cd + wf_pps) * seal_enabler("som", seal)
     som_judge_dps = som_judge_dmg / judge_cd * seal_enabler("som", seal)
@@ -949,23 +963,26 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
     if Extended_Details:
         print("DPS Values // Average DMG Per Cast")
         print(f"Melee: {round(melee_dps, ndigits=1)} // "
-              f"({round((auto_melee/melee_cd+wf_hit*wf_pps)/(1/melee_cd+wf_pps), ndigits=1)})")
+              f"({round((auto_melee / melee_cd + wf_hit * wf_pps) / (1 / melee_cd + wf_pps), ndigits=1)})")
         if cons:
             print(f"Consecration: {round(cons_dps, ndigits=1)} // "
-                  f"({round(cons_dps*cons_cd, ndigits=1)})")
+                  f"({round(cons_dps * cons_cd, ndigits=1)})")
         if seal == "sor":
             print(f"SoR Seal: {round(sor_seal_dps, ndigits=1)} // "
-                  f"({round(sor_seal_dps/(1/melee_cd+wf_pps), ndigits=1)})")
+                  f"({round(sor_seal_dps / (1 / melee_cd + wf_pps), ndigits=1)})")
             print(f"SoR Judge: {round(sor_judge_dps, ndigits=1)} // "
-                  f"({round(sor_judge_dps*judge_cd, ndigits=1)})")
+                  f"({round(sor_judge_dps * judge_cd, ndigits=1)})")
         if seal == "soc":
             print(f"SoC Seal: {round(soc_seal_dps, ndigits=1)}")
             print(f"SoC Judge: {round(soc_judge_dps, ndigits=1)}")
         if seal == "som":
-            print(f"SoM Seal: {round(som_seal_dps, ndigits=1)}")
-            print(f"SoM Judge: {round(som_judge_dps, ndigits=1)}")
+            print(f"SoM Seal: {round(som_seal_dps, ndigits=1)} //"
+                  f"({round(som_seal_dps/(1/melee_cd + wf_pps), ndigits=1)})")
+            print(f"SoM Judge: {round(som_judge_dps, ndigits=1)} //"
+                  f"({round(som_judge_dps*judge_cd, ndigits=1)})")
         if shock:
-            print(f"Holy Shock: {round(holy_shock_dps, ndigits=1)}")
+            print(f"Holy Shock: {round(holy_shock_dps, ndigits=1)} //"
+                  f"({round(holy_shock_dps*holy_shock_cd, ndigits=1)})")
         if exorcism:
             print(f"Exorcism: {round(exorcism_dps, ndigits=1)} // "
                   f"({round(exorcism_dps * exorcism_cd, ndigits=1)})")
@@ -977,7 +994,8 @@ def threat_calculator(weapon_speed, gear_agi, aow_judge_proc, wb, imp_sor, imp_r
         if needle:
             print(f"Needle Proc: {round(needle_dps, ndigits=1)}")
         if cs:
-            print(f"CS: {cs_dps}")
+            print(f"CS: {cs_dps} // "
+                  f"({round(cs_dps*cs_cd, ndigits=1)})")
         print()
         if Print_Assumptions:
             print("Assumed Stats after talents and buffs")
@@ -1016,9 +1034,9 @@ threat_calculator(weapon_speed=Weapon_Speed, gear_agi=Gear_Agi, aow_judge_proc=A
 Build_Name = "Holy Prot with BFD hammer with SoM and AoW"
 # talent toggles
 # holy
-Improved_SoR = False
+Improved_SoR = True
 Divine_Strength = True
-Divine_Intellect = True
+Divine_Intellect = False
 Holy_Power = False
 # prot
 Precision = True
